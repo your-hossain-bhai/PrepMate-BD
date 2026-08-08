@@ -1,0 +1,6 @@
+{
+  "name": "PrepMate BD",
+  "description": "AI-Powered SSC & HSC Board Exam Preparation & Community Platform for Bangladesh",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
