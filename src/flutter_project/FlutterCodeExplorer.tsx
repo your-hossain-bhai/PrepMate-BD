@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FLUTTER_CODEBASE, CodeFile } from '../data/flutterCodebase';
-import { FileCode, Copy, Check, Search, Download, FolderTree, Code, Terminal } from 'lucide-react';
+import { FLUTTER_CODEBASE } from '../data/flutterCodebase';
+import { FileCode, Copy, Check, Search, Download, FolderTree, Code } from 'lucide-react';
 
 export const FlutterCodeExplorer: React.FC = () => {
   const [selectedFilePath, setSelectedFilePath] = useState<string>(FLUTTER_CODEBASE[0].path);

@@ -10,18 +10,12 @@ import {
   CheckCircle2,
   ShieldCheck,
   Star,
-  Users,
   Bot,
   Crown,
   Play,
   ArrowRight,
   ChevronRight,
-  Award,
   Zap,
-  HelpCircle,
-  XCircle,
-  RefreshCw,
-  Flame,
   Globe2,
   FileCode2,
 } from 'lucide-react';
@@ -39,7 +33,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   onOpenSubscription,
   onOpenFlutterCode,
 }) => {
-  const { lang, t, setLang } = useLanguage();
+  const { lang, t } = useLanguage();
   const [downloadingApk, setDownloadingApk] = useState(false);
   const [apkDownloaded, setApkDownloaded] = useState(false);
 

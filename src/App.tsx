@@ -7,24 +7,16 @@ import { QuizPlayView } from './components/QuizPlayView';
 import { QuizResultsView } from './components/QuizResultsView';
 import { CommunityFeedView } from './components/CommunityFeedView';
 import { SubscriptionView } from './components/SubscriptionView';
-import { FlutterCodeExplorer } from './components/FlutterCodeExplorer';
-import { LandingPageView } from './components/LandingPageView';
 
 import {
   School,
   Zap,
   Users,
   Crown,
-  Code2,
   Smartphone,
-  Globe2,
-  Menu,
-  X,
-  Play,
-  Download,
 } from 'lucide-react';
 
-type AppTab = 'landing' | 'quiz' | 'community' | 'subscription' | 'profile' | 'codebase';
+type AppTab = 'quiz' | 'community' | 'subscription' | 'profile';
 type QuizStep = 'config' | 'playing' | 'results';
 
 function MainApp() {
@@ -42,9 +34,7 @@ function MainApp() {
     streakDays: 4,
   });
 
-  const [activeTab, setActiveTab] = useState<AppTab>('landing');
-  const [viewMode, setViewMode] = useState<'app' | 'codebase'>('app');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<AppTab>('quiz');
 
   // Quiz Engine State
   const [quizStep, setQuizStep] = useState<QuizStep>('config');
@@ -122,12 +112,12 @@ function MainApp() {
       {/* Platform Header */}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between relative z-10 flex-wrap gap-2">
-          {/* Logo & Level Selector */}
+          {/* Logo & Title */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                setActiveTab('landing');
-                setViewMode('app');
+                setActiveTab('quiz');
+                setQuizStep('config');
               }}
               className="flex items-center gap-2.5 text-left group"
             >
@@ -151,7 +141,7 @@ function MainApp() {
             </button>
           </div>
 
-          {/* Controls: Language Switcher, Level Switcher, Code Inspector */}
+          {/* Controls: Language Switcher & Academic Level Toggle */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* Language Switcher (Bengali vs English) */}
             <div className="bg-white/10 backdrop-blur-md p-1 rounded-xl flex text-xs font-bold border border-white/15 items-center">
@@ -200,181 +190,128 @@ function MainApp() {
                 HSC
               </button>
             </div>
-
-            {/* View Mode Toggle: App vs Flutter Codebase */}
-            <button
-              onClick={() => {
-                setViewMode(viewMode === 'app' ? 'codebase' : 'app');
-                if (viewMode === 'app') setActiveTab('codebase');
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition-all shadow-md ${
-                viewMode === 'codebase'
-                  ? 'bg-emerald-500 text-white border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)]'
-                  : 'bg-white/10 text-amber-300 border-white/20 hover:bg-white/20'
-              }`}
-            >
-              <Code2 className="w-4 h-4" />
-              <span className="hidden sm:inline">
-                {viewMode === 'codebase' ? t('appViewBtn') : t('flutterCodeTab')}
-              </span>
-            </button>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 space-y-5 relative z-10">
-        {/* Navigation Tabs Bar (if in App View Mode) */}
-        {viewMode === 'app' && (
-          <div className="bg-white/10 backdrop-blur-2xl p-2 rounded-2xl shadow-xl border border-white/20 flex items-center justify-start sm:justify-around overflow-x-auto gap-1 no-scrollbar">
-            {/* Website / Landing Page Tab */}
-            <button
-              onClick={() => setActiveTab('landing')}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                activeTab === 'landing'
-                  ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40'
-                  : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <Globe2 className="w-4 h-4 text-[#002b24]" />
-              <span>{t('landingPageTab')}</span>
-            </button>
+        {/* Pure Student App Navigation Bar */}
+        <div className="bg-white/10 backdrop-blur-2xl p-2 rounded-2xl shadow-xl border border-white/20 flex items-center justify-around overflow-x-auto gap-1 no-scrollbar">
+          <button
+            onClick={() => {
+              setActiveTab('quiz');
+              setQuizStep('config');
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              activeTab === 'quiz'
+                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
+                : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Zap className="w-4 h-4 text-amber-300" />
+            <span>{t('aiQuizTab')}</span>
+          </button>
 
-            <button
-              onClick={() => {
-                setActiveTab('quiz');
-                setQuizStep('config');
-              }}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                activeTab === 'quiz'
-                  ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
-                  : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <Zap className="w-4 h-4 text-amber-300" />
-              <span>{t('aiQuizTab')}</span>
-            </button>
+          <button
+            onClick={() => setActiveTab('community')}
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              activeTab === 'community'
+                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
+                : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Users className="w-4 h-4 text-emerald-300" />
+            <span>{t('communityTab')}</span>
+          </button>
 
-            <button
-              onClick={() => setActiveTab('community')}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                activeTab === 'community'
-                  ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
-                  : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <Users className="w-4 h-4 text-emerald-300" />
-              <span>{t('communityTab')}</span>
-            </button>
+          <button
+            onClick={() => setActiveTab('subscription')}
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              activeTab === 'subscription'
+                ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40'
+                : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Crown className="w-4 h-4 text-amber-400" />
+            <span>{t('premiumTab')}</span>
+            {user.isPremium ? (
+              <span className="bg-emerald-500 text-[#002b24] text-[9px] px-1.5 py-0.2 rounded font-bold font-mono">
+                ACTIVE
+              </span>
+            ) : (
+              <span className="bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[9px] px-1.5 py-0.2 rounded font-mono">
+                2.00 BDT/day
+              </span>
+            )}
+          </button>
 
-            <button
-              onClick={() => setActiveTab('subscription')}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                activeTab === 'subscription'
-                  ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40'
-                  : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <Crown className="w-4 h-4 text-amber-400" />
-              <span>{t('premiumTab')}</span>
-              {user.isPremium ? (
-                <span className="bg-emerald-500 text-[#002b24] text-[9px] px-1.5 py-0.2 rounded font-bold font-mono">
-                  ACTIVE
-                </span>
-              ) : (
-                <span className="bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[9px] px-1.5 py-0.2 rounded font-mono">
-                  2.00 BDT/day
-                </span>
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              activeTab === 'profile'
+                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
+                : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            <Smartphone className="w-4 h-4 text-emerald-300" />
+            <span>{t('profileTab')}</span>
+          </button>
+        </div>
+
+        {/* Student App Views */}
+        <div className="space-y-4">
+          {/* TAB 1: AI Quiz Engine */}
+          {activeTab === 'quiz' && (
+            <>
+              {quizStep === 'config' && (
+                <QuizConfigView
+                  user={user}
+                  onStartQuiz={handleStartQuiz}
+                  onOpenSubscription={() => setActiveTab('subscription')}
+                />
               )}
-            </button>
 
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                activeTab === 'profile'
-                  ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
-                  : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <Smartphone className="w-4 h-4 text-emerald-300" />
-              <span>{t('profileTab')}</span>
-            </button>
-          </div>
-        )}
+              {quizStep === 'playing' && (
+                <QuizPlayView
+                  questions={currentQuestions}
+                  isLoading={quizLoading}
+                  subject={activeQuizSubject}
+                  chapter={activeQuizChapter}
+                  onCompleteQuiz={handleCompleteQuiz}
+                />
+              )}
 
-        {/* View Mode: Flutter Code Architecture Explorer */}
-        {viewMode === 'codebase' ? (
-          <FlutterCodeExplorer />
-        ) : (
-          /* View Mode: App Simulator */
-          <div className="space-y-4">
-            {/* TAB 0: Landing Page / Website */}
-            {activeTab === 'landing' && (
-              <LandingPageView
-                user={user}
-                onOpenWebApp={() => {
-                  setActiveTab('quiz');
-                  setQuizStep('config');
-                }}
-                onOpenSubscription={() => setActiveTab('subscription')}
-                onOpenFlutterCode={() => {
-                  setViewMode('codebase');
-                  setActiveTab('codebase');
-                }}
-              />
-            )}
-            {/* TAB 1: AI Quiz Engine */}
-            {activeTab === 'quiz' && (
-              <>
-                {quizStep === 'config' && (
-                  <QuizConfigView
-                    user={user}
-                    onStartQuiz={handleStartQuiz}
-                    onOpenSubscription={() => setActiveTab('subscription')}
-                  />
-                )}
+              {quizStep === 'results' && (
+                <QuizResultsView
+                  user={user}
+                  subject={activeQuizSubject}
+                  chapter={activeQuizChapter}
+                  userAnswers={completedAnswers}
+                  onRestartQuiz={() => setQuizStep('config')}
+                  onOpenCommunity={() => setActiveTab('community')}
+                />
+              )}
+            </>
+          )}
 
-                {quizStep === 'playing' && (
-                  <QuizPlayView
-                    questions={currentQuestions}
-                    isLoading={quizLoading}
-                    subject={activeQuizSubject}
-                    chapter={activeQuizChapter}
-                    onCompleteQuiz={handleCompleteQuiz}
-                  />
-                )}
+          {/* TAB 2: Community Feed */}
+          {activeTab === 'community' && <CommunityFeedView user={user} />}
 
-                {quizStep === 'results' && (
-                  <QuizResultsView
-                    user={user}
-                    subject={activeQuizSubject}
-                    chapter={activeQuizChapter}
-                    userAnswers={completedAnswers}
-                    onRestartQuiz={() => setQuizStep('config')}
-                    onOpenCommunity={() => setActiveTab('community')}
-                  />
-                )}
-              </>
-            )}
+          {/* TAB 3: Subscription & bdapps Carrier Billing */}
+          {activeTab === 'subscription' && (
+            <SubscriptionView user={user} onUpdateUser={handleUpdateUser} />
+          )}
 
-            {/* TAB 2: Community Feed */}
-            {activeTab === 'community' && <CommunityFeedView user={user} />}
-
-            {/* TAB 3: Subscription & bdapps Carrier Billing */}
-            {activeTab === 'subscription' && (
-              <SubscriptionView user={user} onUpdateUser={handleUpdateUser} />
-            )}
-
-            {/* TAB 4: Profile & Auth View */}
-            {activeTab === 'profile' && (
-              <AuthView
-                user={user}
-                onUpdateUser={handleUpdateUser}
-                onLoginComplete={() => setActiveTab('quiz')}
-              />
-            )}
-          </div>
-        )}
+          {/* TAB 4: Profile & Auth View */}
+          {activeTab === 'profile' && (
+            <AuthView
+              user={user}
+              onUpdateUser={handleUpdateUser}
+              onLoginComplete={() => setActiveTab('quiz')}
+            />
+          )}
+        </div>
       </main>
 
       {/* Footer */}
