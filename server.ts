@@ -40,11 +40,11 @@ interface SubscriptionRecord {
 const subscriptionDb = new Map<string, SubscriptionRecord>();
 
 // Pre-fill a demo user
-subscriptionDb.set('+8801700000000', {
-  phone: '+8801700000000',
-  operator: 'Grameenphone',
-  isPremium: true,
-  subscriberId: 'BDAPPS-GP-98765',
+subscriptionDb.set('+8801812345678', {
+  phone: '+8801812345678',
+  operator: 'Robi',
+  isPremium: false,
+  subscriberId: 'BDAPPS-ROBI-98765',
   subscribedAt: new Date().toISOString(),
   dailyQuizCount: 0,
   lastQuizReset: new Date().toDateString(),
@@ -240,6 +240,131 @@ Provide a encouraging, clear, and structured bilingual (Bangla + English) explan
   }
 });
 
+// API: Dedicated SSC & HSC Study AI Chatbot
+app.post('/api/study-bot/chat', async (req, res) => {
+  try {
+    const { message = '', image, history = [], academicLevel = 'HSC', group = 'Science', language = 'bn' } = req.body;
+
+    if (!message && !image) {
+      return res.status(400).json({ error: 'Message or image is required' });
+    }
+
+    const systemInstruction = `You are "PrepMate FocusBot" (প্রেপমেট স্টাডি বট), an ultra-focused AI Study Assistant dedicated STRICTLY to both SSC (Class 9-10) and HSC (Class 11-12) students preparing for Bangladeshi NCTB Board Exams (Bangla & English Version) and O/A Levels across Science, Commerce, and Humanities.
+
+CRITICAL LANGUAGE MATCHING RULE (STRICTLY ENFORCE THIS):
+1. IF THE USER'S QUESTION OR MESSAGE IS WRITTEN IN ENGLISH (e.g., "What is Newton's second law?", "Explain calculus integration"):
+   -> YOU MUST RESPOND ENTIRELY IN ENGLISH.
+2. IF THE USER'S QUESTION OR MESSAGE IS WRITTEN IN BANGLA SCRIPT (e.g., "নিউটন এর গতির দ্বিতীয় সূত্রটি কী?", "ভেক্টর লব্ধি কীভাবে বের করে?"):
+   -> YOU MUST RESPOND ENTIRELY IN BANGLA (বাংলা ভাষা ও লিপি).
+3. IF THE USER'S QUESTION OR MESSAGE IS WRITTEN IN BANGLISH (Bangla phonetically typed using Latin/English alphabet, e.g., "ami physics er eita bujhi nai", "kemon acho", "kivabe a+ pabo", "vaiya eita kivabe korbo", "chemistry organic reaction r kono shortcut ache?"):
+   -> YOU MUST AUTOMATICALLY DETECT THAT IT IS BANGLISH AND YOU MUST RESPOND ENTIRELY IN CLEAN BANGLA SCRIPT (বাংলা ভাষায় ও বাংলা লিপিতে উত্তর দিবে). NEVER reply in Banglish script. Always convert your response to standard Bangla (বাংলা).
+
+STRICT FOCUS RULE & OFF-TOPIC GUARDRAIL:
+1. You are strictly programmed ONLY to answer academic, educational, subject-related questions, problem solving, study techniques, revision strategies, and exam guidance for SSC and HSC subjects (Physics, Chemistry, Higher Math, General Math, Biology, ICT, Accounting, Economics, Business Studies, English, Bangla, General Science, History, Civics).
+2. IF THE USER ASKS ABOUT MOVIES, TV SHOWS, CELEBRITIES, POP CULTURE, VIDEO GAMES, SPORTS GOSSIP, ENTERTAINMENT, FASHION, DATING, POLITICS, OR ANY OFF-TOPIC NON-ACADEMIC SUBJECT:
+   - YOU MUST IMMEDIATELY DECLINE TO ANSWER.
+   - REMIND THEM IN AN ENCOURAGING YET FIRM MANNER THAT YOU ARE A DEDICATED STUDY BOT CREATED TO KEEP THEM ATTENTIVE AND FOCUSED ON THEIR BOARD EXAM PREPARATION.
+   - REDIRECT THEM BACK TO THEIR ACADEMIC GOALS.
+   - Follow the language rule above when declining (e.g. if asked in English about a movie, decline in English; if asked in Bangla or Banglish about a movie, decline in Bangla).`;
+
+    const lowerMsg = (message || '').toLowerCase();
+
+    // Helper for offline / fallback language detection
+    const isBanglaScript = /[\u0980-\u09FF]/.test(message);
+    const banglishWords = ['ami', 'tumi', 'apni', 'kivabe', 'kemon', 'bujhi', 'bujhinai', 'eita', 'korbo', 'parbo', 'vaiya', 'bhai', 'bolo', 'amar', 'tomar', 'somoy', 'poriksha', 'porikha', 'shathe', 'a+'];
+    const isBanglish = banglishWords.some((w) => lowerMsg.includes(w));
+
+    // Off-topic keywords
+    const isOffTopic =
+      lowerMsg.includes('movie') ||
+      lowerMsg.includes('cinema') ||
+      lowerMsg.includes('actor') ||
+      lowerMsg.includes('actress') ||
+      lowerMsg.includes('natok') ||
+      lowerMsg.includes('serial') ||
+      lowerMsg.includes('game') ||
+      lowerMsg.includes('song') ||
+      lowerMsg.includes('gossip') ||
+      lowerMsg.includes('cricket match') ||
+      lowerMsg.includes('football match');
+
+    if (!ai || !process.env.GEMINI_API_KEY) {
+      if (isOffTopic) {
+        if (isBanglaScript || isBanglish) {
+          return res.json({
+            reply: `⚠️ **মনোযোগ গার্ডরেইল এলার্ট!** আমি আপনার বিশেষায়িত SSC ও HSC এআই স্টাডি বট।\n\nপরীক্ষায় এ প্লাস অর্জনের লক্ষ্যে আপনাকে মনোযোগী রাখতে আমি শুধু পড়ালেখা সংক্রান্ত প্রশ্নের উত্তর দিই। আসুন অফ-টপিক সিনেমা বা বিনোদন চিন্তা বাদ দিয়ে ${academicLevel} (${group}) পড়ালেখায় ফোকাস করি! 📚🎯`,
+            isOffTopic: true,
+          });
+        } else {
+          return res.json({
+            reply: `⚠️ **Focus Guardrail Activated!** I am your dedicated SSC & HSC AI Study Assistant.\n\nTo help you achieve top grades in your board exams, I only answer study-related questions. Let's stay focused! Ask me anything about Physics, Chemistry, Math, ICT, or exam strategies. 📚🎯`,
+            isOffTopic: true,
+          });
+        }
+      }
+
+      // Offline response based on language
+      if (isBanglaScript || isBanglish) {
+        return res.json({
+          reply: `📚 **প্রেপমেট স্টাডি বট (${academicLevel} - ${group})**:\n\nআপনার প্রশ্নের উত্তর (বাংলা সমাধান):\n১. **মূল ধারণা**: NCTB পাঠ্যবইয়ের প্রধান সূত্র ও বিষয়ভিত্তিক নিয়ম অনুসরণ করুন।\n২. **বোর্ড পরীক্ষার কৌশল**: বিগত ৫ বছরের টেস্ট পেপারস ও সকল শিক্ষা বোর্ডের প্রশ্ন সমাধান প্র্যাকটিস করুন।\n৩. **টিপস**: ধাপে ধাপে গুছিয়ে উত্তর লিখলে বোর্ডে পূর্ণ নম্বর পাওয়া সহজ হয়!`,
+          isOffTopic: false,
+        });
+      } else {
+        return res.json({
+          reply: `📚 **PrepMate Study Assistant (${academicLevel} - ${group})**:\n\nHere is your step-by-step guidance:\n1. **Core Concept**: Focus on foundational NCTB textbook formulas and definitions.\n2. **Board Exam Strategy**: Practice past 5 years board question papers.\n3. **Pro Tip**: Show clear step-by-step calculations for maximum marks!`,
+          isOffTopic: false,
+        });
+      }
+    }
+
+    // Build multimodal contents
+    const parts: any[] = [];
+
+    if (image && typeof image === 'string') {
+      const matches = image.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/);
+      if (matches) {
+        parts.push({
+          inlineData: {
+            mimeType: matches[1],
+            data: matches[2],
+          },
+        });
+      }
+    }
+
+    if (message) {
+      parts.push({ text: message });
+    }
+
+    let contentsPayload: any = { parts };
+    if (history && Array.isArray(history) && history.length > 0) {
+      const historyFormatted = history
+        .slice(-6)
+        .map((h: any) => `${h.sender === 'user' ? 'User' : 'Assistant'}: ${h.text}`)
+        .join('\n');
+      parts.unshift({ text: `Previous Conversation Context:\n${historyFormatted}\n---\nNew Student Query (${academicLevel} - ${group}):` });
+    }
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: contentsPayload,
+      config: {
+        systemInstruction,
+      },
+    });
+
+    const reply = response.text || (language === 'en' ? 'I could not process the request.' : 'দুঃখিত, কোনো উত্তর পাওয়া যায়নি।');
+
+    return res.json({ reply });
+  } catch (err: any) {
+    console.error('Study bot API error:', err);
+    return res.status(500).json({
+      reply: 'An error occurred while communicating with the Study Bot. Please try again.',
+      error: err.message,
+    });
+  }
+});
+
 // API: bdapps Carrier Billing - Subscribe Endpoint
 app.post('/api/bdapps/subscribe', (req, res) => {
   const { phone, operator } = req.body;
@@ -256,7 +381,7 @@ app.post('/api/bdapps/subscribe', (req, res) => {
 
   const record: SubscriptionRecord = {
     phone,
-    operator: operator || 'Grameenphone',
+    operator: operator || 'Robi',
     isPremium: true,
     subscriberId,
     subscribedAt: new Date().toISOString(),

@@ -16,7 +16,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
   const [error, setError] = useState('');
   const [statusInfo, setStatusInfo] = useState<any>(null);
 
-  const userPhone = user?.phone || '+8801712345678';
+  const userPhone = user?.phone || '+8801812345678';
 
   // Check bdapps subscription status on mount
   useEffect(() => {
@@ -170,25 +170,23 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 gap-2.5">
-          {['Robi', 'Airtel', 'Grameenphone', 'Banglalink', 'Teletalk'].map((op) => (
+        <div className="grid grid-cols-2 gap-3">
+          {['Robi', 'Airtel'].map((op) => (
             <button
               key={op}
               type="button"
               onClick={() => setOperator(op)}
-              className={`p-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-between ${
+              className={`p-4 rounded-2xl border text-xs font-bold transition-all flex items-center justify-between ${
                 operator === op
                   ? 'border-amber-400 bg-amber-400/20 text-amber-300 shadow-md ring-1 ring-amber-400/50'
                   : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'
               }`}
             >
-              <div className="flex items-center gap-1.5">
-                <span>{op}</span>
-                {(op === 'Robi' || op === 'Airtel') && (
-                  <span className="text-[9px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 px-1.5 py-0.2 rounded font-mono font-extrabold">
-                    bdapps Official
-                  </span>
-                )}
+              <div className="flex items-center gap-2">
+                <span className="text-sm">{op}</span>
+                <span className="text-[9px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 px-2 py-0.5 rounded font-mono font-extrabold">
+                  {op === 'Robi' ? '018 prefix' : '016 prefix'} • bdapps
+                </span>
               </div>
               <Smartphone className="w-4 h-4 text-emerald-300/60" />
             </button>

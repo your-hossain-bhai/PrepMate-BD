@@ -61,15 +61,32 @@ export const dictionary: Translations = {
     en: 'AI Board Exam Prep & Community for SSC/HSC in Bangladesh',
   },
   aiQuizTab: { bn: 'এআই কুইজ', en: 'AI Quiz' },
+  studyBotTab: { bn: 'এআই স্টাডি বট', en: 'AI Study Bot' },
+  plannerTab: { bn: 'স্টাডি প্ল্যানার', en: 'Study Planner' },
   communityTab: { bn: 'কমিউনিটি', en: 'Community' },
   premiumTab: { bn: 'bdapps প্রিমিয়াম', en: 'bdapps Premium' },
   profileTab: { bn: 'প্রোফাইল', en: 'Profile' },
   flutterCodeTab: { bn: 'ফ্লাটার কোড', en: 'Flutter Code' },
   appViewBtn: { bn: 'অ্যাপ ভিউ', en: 'App View' },
   
-  // Language Switcher
+  // Language & Theme Switcher
   langName: { bn: 'বাংলা', en: 'English' },
   mediumNotice: { bn: 'বাংলা ও ইংলিশ ভার্সন সাপোর্ট', en: 'NCTB English Version & Cambridge Supported' },
+  dayTheme: { bn: 'দিন মোড (Day Mode)', en: 'Day Study Mode' },
+  nightTheme: { bn: 'রাত মোড (Night Mode)', en: 'Night Study Mode' },
+
+  // Daily Challenge
+  dailyChallengeTitle: { bn: 'আজকের ডেইলি চ্যালেঞ্জ', en: 'Today\'s Daily Challenge' },
+  dailyChallengeSubtitle: {
+    bn: 'প্রতিদিনের নির্বাচিত স্পেশাল কুইজ সমাধান করে জিতে নিন ৫০ বোনাস এক্সপি (Bonus XP)!',
+    en: 'Solve today\'s curated challenge question and earn 50 Bonus XP!',
+  },
+  dailyChallengeCompleted: {
+    bn: 'আজকের ডেইলি চ্যালেঞ্জ সম্পন্ন হয়েছে! (+৫০ XP অর্জিত 🎉)',
+    en: 'Daily Challenge Completed Today! (+50 XP Earned 🎉)',
+  },
+  dailyChallengeBtn: { bn: 'ডেইলি চ্যালেঞ্জ শুরু করুন (+৫০ XP)', en: 'Start Daily Challenge (+50 XP)' },
+  dailyChallengeBonusText: { bn: '৫০ বোনাস এক্সপি!', en: '50 Bonus XP!' },
 
   // Quiz Config View
   quizConfigTitle: { bn: 'বোর্ড কুইজ কনফিগারেশন', en: 'Board Quiz Configuration' },

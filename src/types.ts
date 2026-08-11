@@ -1,6 +1,26 @@
 export type AcademicLevel = 'SSC' | 'HSC';
 export type AcademicGroup = 'Science' | 'Commerce' | 'Humanities';
 
+export interface QuizHistoryRecord {
+  id: string;
+  subject: string;
+  chapter: string;
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  timestamp: string;
+  academicLevel: AcademicLevel;
+}
+
+export interface StudySlot {
+  id: string; // e.g., 'sat-morning'
+  day: string; // 'Sat', 'Sun', etc.
+  timeSlot: string; // 'Morning (8-10 AM)', etc.
+  subject: string;
+  topic?: string;
+  completed?: boolean;
+}
+
 export interface UserProfile {
   uid: string;
   phone: string;
@@ -11,6 +31,10 @@ export interface UserProfile {
   dailyQuizCount: number;
   points: number;
   streakDays: number;
+  lastDailyChallengeDate?: string;
+  quizHistory?: QuizHistoryRecord[];
+  reminderEnabled?: boolean;
+  reminderTime?: string; // e.g., '20:00'
 }
 
 export interface QuizQuestion {

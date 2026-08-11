@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { QuizQuestion, UserProfile } from '../types';
 import { useLanguage } from '../LanguageContext';
-import { Award, CheckCircle2, XCircle, RotateCcw, Bot, Sparkles, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Award, CheckCircle2, XCircle, RotateCcw, Bot, Sparkles, ChevronDown, ChevronUp, Loader2, Share2, Check, Copy } from 'lucide-react';
 
 interface QuizResultsViewProps {
   user: UserProfile;
   subject: string;
   chapter: string;
   userAnswers: { question: QuizQuestion; selectedIndex: number | null; timeSpentSec: number }[];
+  earnedBonusXp?: number;
   onRestartQuiz: () => void;
   onOpenCommunity: () => void;
 }
@@ -17,18 +18,44 @@ export const QuizResultsView: React.FC<QuizResultsViewProps> = ({
   subject,
   chapter,
   userAnswers,
+  earnedBonusXp = 0,
   onRestartQuiz,
   onOpenCommunity,
 }) => {
   const { lang, t } = useLanguage();
   const [expandedAiExplanation, setExpandedAiExplanation] = useState<Record<string, string>>({});
   const [loadingAiId, setLoadingAiId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const totalQuestions = userAnswers.length;
   const correctCount = userAnswers.filter(
     (ans) => ans.selectedIndex === ans.question.correctIndex
   ).length;
   const scorePercentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+
+  const handleShareAchievement = async () => {
+    const summaryText =
+      lang === 'en'
+        ? `🏆 Prepmate BD - Board Exam Quiz Achievement!\n📚 Subject: ${subject} (${chapter})\n🎯 Score: ${correctCount}/${totalQuestions} (${scorePercentage}% Accuracy)\n🎓 Level: ${user.academicLevel} ${user.group || ''}\n⚡ Points Earned: +${correctCount * 10 + earnedBonusXp} XP\n\nJoin Bangladesh's premier AI Board Exam Preparation platform at Prepmate BD!`
+        : `🏆 প্রেপমেট বিডি - বোর্ড এক্সাম কুইজ ফলাফল!\n📚 বিষয়: ${subject} (${chapter})\n🎯 স্কোর: ${correctCount}/${totalQuestions} (${scorePercentage}% নির্ভুলতা)\n🎓 লেভেল: ${user.academicLevel} ${user.group || ''}\n⚡ অর্জিত পয়েন্ট: +${correctCount * 10 + earnedBonusXp} এক্সপি\n\nবাংলাদেশের সেরা এআই বোর্ড পরীক্ষা প্রস্তুত ফোরাম প্রেপমেট বিডিতে আজই যোগ দিন!`;
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(summaryText);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = summaryText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      console.error('Copy error:', err);
+    }
+  };
 
   const handleAskAiTutor = async (q: QuizQuestion, selectedIndex: number | null) => {
     if (expandedAiExplanation[q.id]) {
@@ -85,6 +112,19 @@ export const QuizResultsView: React.FC<QuizResultsViewProps> = ({
           <p className="text-xs text-emerald-200/80">{chapter}</p>
         </div>
 
+        {earnedBonusXp > 0 && (
+          <div className="bg-gradient-to-r from-amber-500/30 via-emerald-500/30 to-amber-500/30 border-2 border-amber-400/60 p-4 rounded-2xl text-center shadow-xl space-y-1 animate-bounce">
+            <div className="inline-flex items-center gap-1.5 text-amber-300 font-black text-sm uppercase tracking-wider">
+              <Sparkles className="w-5 h-5 text-amber-400" /> 🔥 {lang === 'en' ? 'Daily Challenge Cleared!' : 'ডেইলি চ্যালেঞ্জ বিজয়ী!'}
+            </div>
+            <p className="text-xs font-bold text-white">
+              {lang === 'en'
+                ? `You earned +${earnedBonusXp} Bonus XP for today's challenge!`
+                : `আপনি আজকের চ্যালেঞ্জ বিজয়ী হয়ে +${earnedBonusXp} বোনাস এক্সপি পেয়েছেন!`}
+            </p>
+          </div>
+        )}
+
         {/* Score Circle */}
         <div className="flex justify-center items-center gap-4 sm:gap-6 py-2">
           <div className="bg-[#003d34]/80 p-4 rounded-2xl border border-white/15 text-center min-w-[110px] shadow-lg">
@@ -114,6 +154,22 @@ export const QuizResultsView: React.FC<QuizResultsViewProps> = ({
         </p>
 
         <div className="flex flex-wrap gap-3 justify-center pt-2">
+          <button
+            onClick={handleShareAchievement}
+            className="py-3 px-5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-extrabold rounded-2xl text-xs flex items-center gap-2 transition-all shadow-lg active:scale-95"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-amber-300" />
+                <span>{lang === 'en' ? 'Copied to Clipboard!' : 'কপি হয়েছে! 📋'}</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4 text-amber-300" />
+                <span>{lang === 'en' ? 'Share Achievement' : 'ফলাফল শেয়ার করুন'}</span>
+              </>
+            )}
+          </button>
           <button
             onClick={onRestartQuiz}
             className="py-3 px-5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-2xl text-xs flex items-center gap-2 transition-all shadow"

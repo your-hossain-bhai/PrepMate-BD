@@ -13,6 +13,7 @@ interface QuizConfigViewProps {
     count: number;
     curriculumVersion: string;
   }) => void;
+  onStartDailyChallenge: () => void;
   onOpenSubscription: () => void;
 }
 
@@ -55,11 +56,19 @@ const CHAPTER_SUGGESTIONS_EN: Record<string, string[]> = {
   Chemistry: ['Chapter 3: Structure of Matter', 'Chapter 4: Periodic Table', 'Chapter 5: Chemical Bond', 'Chapter 6: Concept of Mole & Chemical Calculations'],
 };
 
-export const QuizConfigView: React.FC<QuizConfigViewProps> = ({ user, onStartQuiz, onOpenSubscription }) => {
+export const QuizConfigView: React.FC<QuizConfigViewProps> = ({
+  user,
+  onStartQuiz,
+  onStartDailyChallenge,
+  onOpenSubscription,
+}) => {
   const { lang, setLang, t } = useLanguage();
   const [level, setLevel] = useState<AcademicLevel>(user.academicLevel || 'HSC');
   const [group, setGroup] = useState<AcademicGroup>(user.group || 'Science');
   const [curriculumVersion, setCurriculumVersion] = useState<'Bangla' | 'English'>(lang === 'en' ? 'English' : 'Bangla');
+
+  const todayString = new Date().toDateString();
+  const isChallengeDoneToday = user.lastDailyChallengeDate === todayString;
 
   const availableSubjects = SUBJECT_MAP[level]?.[group] || SUBJECT_MAP.HSC.Science;
 
@@ -122,6 +131,50 @@ export const QuizConfigView: React.FC<QuizConfigViewProps> = ({ user, onStartQui
             <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center gap-1.5">
               <Crown className="w-4 h-4 text-amber-300" /> bdapps Unlimited
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* 🔥 Daily Challenge Card */}
+      <div className="p-6 bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 backdrop-blur-2xl border-2 border-amber-400/40 rounded-3xl shadow-xl space-y-4 relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-[#002b24] flex items-center justify-center font-black shadow-lg shadow-amber-900/40 shrink-0 mt-0.5">
+              <Zap className="w-7 h-7" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-amber-400/30 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full">
+                  🔥 {t('dailyChallengeTitle')}
+                </span>
+                <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">
+                  {t('dailyChallengeBonusText')}
+                </span>
+              </div>
+              <h3 className="text-base font-extrabold text-white mt-1">
+                {lang === 'en'
+                  ? 'Curated Board High-Yield Challenge Question'
+                  : 'বোর্ড পরীক্ষার আজকের বিশেষ কিউরেটেড চ্যালেঞ্জ প্রশ্ন'}
+              </h3>
+              <p className="text-xs text-emerald-200/90 mt-0.5">
+                {t('dailyChallengeSubtitle')}
+              </p>
+            </div>
+          </div>
+
+          {isChallengeDoneToday ? (
+            <div className="flex items-center gap-2 bg-emerald-500/30 border border-emerald-400/50 text-emerald-200 px-4 py-3 rounded-2xl font-black text-xs shrink-0 self-stretch sm:self-auto justify-center shadow-md">
+              <Check className="w-4 h-4 text-emerald-300" />
+              {t('dailyChallengeCompleted')}
+            </div>
+          ) : (
+            <button
+              onClick={onStartDailyChallenge}
+              className="px-5 py-3.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#002b24] font-extrabold text-xs rounded-2xl shadow-xl shadow-amber-900/40 flex items-center justify-center gap-2 transition-all active:scale-95 shrink-0 uppercase tracking-wider self-stretch sm:self-auto"
+            >
+              <Sparkles className="w-4 h-4 text-[#002b24]" />
+              {t('dailyChallengeBtn')}
+            </button>
           )}
         </div>
       </div>

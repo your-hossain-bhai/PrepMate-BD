@@ -1,33 +1,23 @@
-export interface CodeFile {
-  path: string;
-  language: 'dart' | 'yaml' | 'php' | 'json';
-  category: 'core' | 'auth' | 'community' | 'quiz' | 'subscription' | 'backend' | 'config';
-  code: string;
-}
-
-export const FLUTTER_CODEBASE: CodeFile[] = [
-  {
-    path: 'pubspec.yaml',
-    language: 'yaml',
-    category: 'config',
-    code: `name: prepmate_bd
-description: "AI-Powered SSC & HSC Board Exam Preparation and Community App for Bangladesh"
+export const flutterPubspec = `name: prepmate_bd
+description: "PrepMate BD - SSC & HSC AI Board Exam Preparation App in Flutter"
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.0 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^2.4.9
-  go_router: ^13.1.0
-  dio: ^5.4.0
-  google_fonts: ^6.1.0
-  flutter_animate: ^4.5.0
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.2.0
   shared_preferences: ^2.2.2
-  intl: ^0.19.0
+  flutter_local_notifications: ^17.0.0
+  timezone: ^0.9.2
+  provider: ^6.1.1
+  google_fonts: ^6.1.0
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
@@ -38,439 +28,96 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-`,
-  },
-  {
-    path: 'lib/main.dart',
-    language: 'dart',
-    category: 'core',
-    code: `import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/routing/app_router.dart';
-import 'core/theme/app_theme.dart';
+`;
 
-void main() {
+export const flutterMainDart = `import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'services/notification_service.dart';
+import 'services/offline_storage_service.dart';
+import 'providers/user_provider.dart';
+import 'screens/home_screen.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const ProviderScope(
-      child: PrepMateBDApp(),
-    ),
-  );
+  await NotificationService().init();
+  await OfflineStorageService().init();
+  runApp(const PrepMateApp());
 }
 
-class PrepMateBDApp extends ConsumerWidget {
-  const PrepMateBDApp({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
-
-    return MaterialApp.router(
-      title: 'PrepMate BD',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
-      routerConfig: router,
-    );
-  }
-}
-`,
-  },
-  {
-    path: 'lib/core/constants/app_constants.dart',
-    language: 'dart',
-    category: 'core',
-    code: `class AppConstants {
-  static const String appName = 'PrepMate BD';
-  static const String appVersion = '1.0.0';
-
-  // API Base URLs
-  static const String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
-  static const String geminiModel = 'gemini-1.5-flash';
-  static const String bdappsApiBaseUrl = 'https://prepmate.bd/api/bdapps';
-
-  // Board Categories
-  static const List<String> academicLevels = ['SSC', 'HSC'];
-  static const List<String> academicGroups = ['Science', 'Commerce', 'Humanities'];
-
-  static const List<String> sscSubjects = [
-    'Physics',
-    'Chemistry',
-    'Higher Math',
-    'Biology',
-    'ICT',
-    'General Math',
-    'English',
-  ];
-
-  static const List<String> hscSubjects = [
-    'Physics 1st Paper',
-    'Physics 2nd Paper',
-    'Chemistry 1st Paper',
-    'Chemistry 2nd Paper',
-    'Higher Math 1st Paper',
-    'Higher Math 2nd Paper',
-    'ICT',
-    'Biology 1st Paper',
-    'Accounting 1st Paper',
-  ];
-}
-`,
-  },
-  {
-    path: 'lib/core/theme/app_theme.dart',
-    language: 'dart',
-    category: 'core',
-    code: `import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-class AppTheme {
-  // Brand Palette for Bangladesh Education
-  static const Color primaryTeal = Color(0xFF006A4E); // Deep Emerald/Teal
-  static const Color secondaryAmber = Color(0xFFF2A900); // Gold Accent
-  static const Color surfaceLight = Color(0xFFF7FAF9);
-  static const Color cardBorder = Color(0xFFE2ECE9);
-  static const Color textDark = Color(0xFF1E2923);
-
-  static ThemeData get lightTheme {
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryTeal,
-        primary: primaryTeal,
-        secondary: secondaryAmber,
-        surface: surfaceLight,
-      ),
-      scaffoldBackgroundColor: surfaceLight,
-      textTheme: GoogleFonts.hindSiliguriTextTheme(),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        iconTheme: IconThemeData(color: textDark),
-        titleTextStyle: TextStyle(
-          color: textDark,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      cardTheme: CardTheme(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: cardBorder, width: 1),
-        ),
-        color: Colors.white,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryTeal,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  static ThemeData get darkTheme => lightTheme;
-}
-`,
-  },
-  {
-    path: 'lib/core/routing/app_router.dart',
-    language: 'dart',
-    category: 'core',
-    code: `import 'package:go_router/go_router.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../features/auth/presentation/auth_screen.dart';
-import '../../features/community/presentation/feed_screen.dart';
-import '../../features/quiz/presentation/quiz_config_screen.dart';
-import '../../features/quiz/presentation/quiz_play_screen.dart';
-import '../../features/quiz/presentation/quiz_results_screen.dart';
-import '../../features/subscription/presentation/subscription_screen.dart';
-
-final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
-    initialLocation: '/quiz',
-    routes: [
-      GoRoute(
-        path: '/auth',
-        builder: (context, state) => const AuthScreen(),
-      ),
-      GoRoute(
-        path: '/feed',
-        builder: (context, state) => const CommunityFeedScreen(),
-      ),
-      GoRoute(
-        path: '/quiz',
-        builder: (context, state) => const QuizConfigScreen(),
-      ),
-      GoRoute(
-        path: '/quiz-play',
-        builder: (context, state) => const QuizPlayScreen(),
-      ),
-      GoRoute(
-        path: '/quiz-results',
-        builder: (context, state) => const QuizResultsScreen(),
-      ),
-      GoRoute(
-        path: '/subscription',
-        builder: (context, state) => const SubscriptionScreen(),
-      ),
-    ],
-  );
-});
-`,
-  },
-  {
-    path: 'lib/features/auth/domain/user_model.dart',
-    language: 'dart',
-    category: 'auth',
-    code: `class UserModel {
-  final String uid;
-  final String phone;
-  final String academicLevel; // SSC or HSC
-  final String group; // Science, Commerce, Humanities
-  final bool isPremium;
-  final int dailyQuizCount;
-
-  UserModel({
-    required this.uid,
-    required this.phone,
-    required this.academicLevel,
-    required this.group,
-    this.isPremium = false,
-    this.dailyQuizCount = 0,
-  });
-
-  UserModel copyWith({
-    String? uid,
-    String? phone,
-    String? academicLevel,
-    String? group,
-    bool? isPremium,
-    int? dailyQuizCount,
-  }) {
-    return UserModel(
-      uid: uid ?? this.uid,
-      phone: phone ?? this.phone,
-      academicLevel: academicLevel ?? this.academicLevel,
-      group: group ?? this.group,
-      isPremium: isPremium ?? this.isPremium,
-      dailyQuizCount: dailyQuizCount ?? this.dailyQuizCount,
-    );
-  }
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      uid: json['uid'] ?? '',
-      phone: json['phone'] ?? '',
-      academicLevel: json['academicLevel'] ?? 'HSC',
-      group: json['group'] ?? 'Science',
-      isPremium: json['isPremium'] ?? false,
-      dailyQuizCount: json['dailyQuizCount'] ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'uid': uid,
-        'phone': phone,
-        'academicLevel': academicLevel,
-        'group': group,
-        'isPremium': isPremium,
-        'dailyQuizCount': dailyQuizCount,
-      };
-}
-`,
-  },
-  {
-    path: 'lib/features/auth/presentation/auth_screen.dart',
-    language: 'dart',
-    category: 'auth',
-    code: `import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'auth_provider.dart';
-
-class AuthScreen extends ConsumerStatefulWidget {
-  const AuthScreen({super.key});
-
-  @override
-  ConsumerState<AuthScreen> createState() => _AuthScreenState();
-}
-
-class _AuthScreenState extends ConsumerState<AuthScreen> {
-  final _phoneController = TextEditingController(text: '+8801700000000');
-  final _otpController = TextEditingController();
-  bool _codeSent = false;
-  String _selectedLevel = 'HSC';
-  String _selectedGroup = 'Science';
+class PrepMateApp extends StatelessWidget {
+  const PrepMateApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authProvider);
-
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 40),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF006A4E).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(Icons.school, size: 48, color: Color(0xFF006A4E)),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'PrepMate BD এ স্বাগতম!',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const Text(
-                'SSC ও HSC পরীক্ষার জন্য এআই ভিত্তিক প্রস্তুতি অ্যাপ',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 32),
-              if (!_codeSent) ...[
-                TextField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'মোবাইল নম্বর (+8801XXXXXXXXX)',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.phone_android),
-                  ),
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedLevel,
-                        decoration: const InputDecoration(labelText: 'পরীক্ষা', border: OutlineInputBorder()),
-                        items: ['SSC', 'HSC']
-                            .map((l) => DropdownMenuItem(value: l, child: Text(l)))
-                            .toList(),
-                        onChanged: (val) => setState(() => _selectedLevel = val!),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedGroup,
-                        decoration: const InputDecoration(labelText: 'গ্রুপ', border: OutlineInputBorder()),
-                        items: ['Science', 'Commerce', 'Humanities']
-                            .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                            .toList(),
-                        onChanged: (val) => setState(() => _selectedGroup = val!),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() => _codeSent = true);
-                    },
-                    child: const Text('OTP পাঠান'),
-                  ),
-                ),
-              ] else ...[
-                Text('নম্বর: \${_phoneController.text}'),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _otpController,
-                  decoration: const InputDecoration(
-                    labelText: '৬ ডিজিটের OTP কোড (Simulation: 123456)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      ref.read(authProvider.notifier).login(
-                            _phoneController.text,
-                            _selectedLevel,
-                            _selectedGroup,
-                          );
-                      context.go('/quiz');
-                    },
-                    child: const Text('যাচাই করুন ও প্রবেশ করুন'),
-                  ),
-                ),
-              ]
-            ],
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()..loadUserData()),
+      ],
+      child: MaterialApp(
+        title: 'PrepMate BD',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primaryColor: const Color(0xFF002B24),
+          scaffoldBackgroundColor: const Color(0xFF00231D),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFFFFC107),
+            brightness: Brightness.dark,
           ),
+          useMaterial3: true,
         ),
+        home: const HomeScreen(),
       ),
     );
   }
 }
-`,
-  },
-  {
-    path: 'lib/features/auth/presentation/auth_provider.dart',
-    language: 'dart',
-    category: 'auth',
-    code: `import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../domain/user_model.dart';
+`;
 
-class AuthNotifier extends StateNotifier<UserModel> {
-  AuthNotifier()
-      : super(UserModel(
-          uid: 'user_bd_101',
-          phone: '+8801712345678',
-          academicLevel: 'HSC',
-          group: 'Science',
-          isPremium: false,
-          dailyQuizCount: 0,
-        ));
+export const flutterUserModel = `class UserProfile {
+  String name;
+  String academicLevel; // SSC or HSC
+  String group; // Science, Commerce, Humanities
+  int xp;
+  int streakDays;
+  bool isPremium;
+  String? reminderTime; // e.g. "20:00"
+  bool reminderEnabled;
 
-  void login(String phone, String level, String group) {
-    state = state.copyWith(
-      phone: phone,
-      academicLevel: level,
-      group: group,
-    );
-  }
+  UserProfile({
+    required this.name,
+    required this.academicLevel,
+    required this.group,
+    this.xp = 120,
+    this.streakDays = 3,
+    this.isPremium = false,
+    this.reminderTime = '20:00',
+    this.reminderEnabled = true,
+  });
 
-  void setPremiumStatus(bool isPremium) {
-    state = state.copyWith(isPremium: isPremium);
-  }
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'academicLevel': academicLevel,
+    'group': group,
+    'xp': xp,
+    'streakDays': streakDays,
+    'isPremium': isPremium,
+    'reminderTime': reminderTime,
+    'reminderEnabled': reminderEnabled,
+  };
 
-  void incrementQuizCount() {
-    state = state.copyWith(dailyQuizCount: state.dailyQuizCount + 1);
-  }
+  factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
+    name: json['name'] ?? 'SSC Candidate',
+    academicLevel: json['academicLevel'] ?? 'SSC',
+    group: json['group'] ?? 'Science',
+    xp: json['xp'] ?? 120,
+    streakDays: json['streakDays'] ?? 3,
+    isPremium: json['isPremium'] ?? false,
+    reminderTime: json['reminderTime'] ?? '20:00',
+    reminderEnabled: json['reminderEnabled'] ?? true,
+  );
 }
+`;
 
-final authProvider = StateNotifierProvider<AuthNotifier, UserModel>((ref) {
-  return AuthNotifier();
-});
-`,
-  },
-  {
-    path: 'lib/features/quiz/domain/quiz_model.dart',
-    language: 'dart',
-    category: 'quiz',
-    code: `class QuizQuestion {
+export const flutterQuizModel = `class QuizQuestion {
   final String id;
   final String question;
   final List<String> options;
@@ -487,7 +134,7 @@ final authProvider = StateNotifierProvider<AuthNotifier, UserModel>((ref) {
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) {
     return QuizQuestion(
-      id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: json['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
       question: json['question'] ?? '',
       options: List<String>.from(json['options'] ?? []),
       correctIndex: json['correctIndex'] ?? 0,
@@ -496,447 +143,303 @@ final authProvider = StateNotifierProvider<AuthNotifier, UserModel>((ref) {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'question': question,
-        'options': options,
-        'correctIndex': correctIndex,
-        'explanation': explanation,
-      };
+    'id': id,
+    'question': question,
+    'options': options,
+    'correctIndex': correctIndex,
+    'explanation': explanation,
+  };
 }
-`,
-  },
-  {
-    path: 'lib/features/quiz/data/gemini_quiz_service.dart',
-    language: 'dart',
-    category: 'quiz',
-    code: `import 'dart:convert';
-import 'package:dio/dio.dart';
-import '../domain/quiz_model.dart';
-import '../../../core/constants/app_constants.dart';
+`;
 
-class GeminiQuizService {
-  final Dio _dio = Dio();
+export const flutterApiService = `import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/quiz_model.dart';
 
-  Future<List<QuizQuestion>> generateBoardQuiz({
+class ApiService {
+  // Replace with your production domain or local PHP server
+  static const String baseUrl = 'https://yourdomain.com/api';
+
+  // 1. Fetch AI Quiz Questions from Gemini API / Proxy Backend
+  static Future<List<QuizQuestion>> generateQuiz({
     required String academicLevel,
     required String group,
     required String subject,
     required String chapter,
-    int count = 5,
+    required int count,
+    required String language,
   }) async {
-    try {
-      const apiKey = AppConstants.geminiApiKey;
-      if (apiKey.isEmpty) {
-        // Fallback local generator
-        return _getFallbackQuestions(subject);
-      }
+    final response = await http.post(
+      Uri.parse('$baseUrl/quiz_generate.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'academicLevel': academicLevel,
+        'group': group,
+        'subject': subject,
+        'chapter': chapter,
+        'count': count,
+        'language': language,
+      }),
+    );
 
-      final prompt = '''You are an expert Bangladesh NCTB Board Exam Setter.
-Generate $count MCQs for $academicLevel ($group) subject $subject chapter $chapter.
-Format strictly as JSON array of objects with keys: id, question, options (4 strings), correctIndex (0-3), explanation (bilingual Bangla/English).''';
-
-      final response = await _dio.post(
-        'https://generativelanguage.googleapis.com/v1beta/models/\${AppConstants.geminiModel}:generateContent?key=\$apiKey',
-        data: {
-          'contents': [
-            {'parts': [{'text': prompt}]}
-          ],
-          'generationConfig': {'responseMimeType': 'application/json'},
-        },
-      );
-
-      final String jsonStr = response.data['candidates'][0]['content']['parts'][0]['text'];
-      final List rawList = jsonDecode(jsonStr);
-
-      return rawList.map((q) => QuizQuestion.fromJson(q)).toList();
-    } catch (e) {
-      return _getFallbackQuestions(subject);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List list = data['questions'] ?? [];
+      return list.map((q) => QuizQuestion.fromJson(q)).toList();
+    } else {
+      throw Exception('Failed to generate quiz from backend server');
     }
   }
 
-  List<QuizQuestion> _getFallbackQuestions(String subject) {
-    return [
-      QuizQuestion(
-        id: '1',
-        question: 'নিউটনের গতির ২য় সূত্র অনুসারে বলের মান কোনটি?',
-        options: ['F = ma', 'E = mc²', 'V = IR', 'P = VI'],
-        correctIndex: 0,
-        explanation: 'F = ma সূত্র থেকে ভর ও ত্বরণের গুণফল হিসেবে বল নির্ণয় করা হয়।',
-      ),
-      QuizQuestion(
-        id: '2',
-        question: 'HTML এ হাইপারলিংক তৈরি করতে কোন ট্যাগ ব্যবহৃত হয়?',
-        options: ['<a>', '<link>', '<href>', '<p>'],
-        correctIndex: 0,
-        explanation: '<a> ট্যাগ (Anchor Tag) ব্যবহার করে লিংক যুক্ত করা হয়।',
-      ),
-    ];
-  }
-}
-`,
-  },
-  {
-    path: 'lib/features/quiz/presentation/quiz_config_screen.dart',
-    language: 'dart',
-    category: 'quiz',
-    code: `import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../auth/presentation/auth_provider.dart';
-import 'quiz_provider.dart';
-
-class QuizConfigScreen extends ConsumerStatefulWidget {
-  const QuizConfigScreen({super.key});
-
-  @override
-  ConsumerState<QuizConfigScreen> createState() => _QuizConfigScreenState();
-}
-
-class _QuizConfigScreenState extends ConsumerState<QuizConfigScreen> {
-  String _subject = 'Physics';
-  String _chapter = 'Chapter 1: Physical Quantities & Measurement';
-  int _questionCount = 5;
-
-  @override
-  Widget build(BuildContext context) {
-    final user = ref.watch(authProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('PrepMate BD (\${user.academicLevel})'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.stars, color: Colors.amber),
-            onPressed: () => context.push('/subscription'),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              color: const Color(0xFF006A4E),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'এআই কুইজ জেনারেটর',
-                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            user.isPremium ? '🌟 প্রিমিয়াম আনলিমিটেড এক্সেস' : 'দৈনিক ১টি ফ্রি কুইজ বাকি',
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF2A900)),
-                      onPressed: () => context.push('/feed'),
-                      child: const Text('কমিউনিটি', style: TextStyle(color: Colors.black)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text('বিষয় নির্বাচন করুন:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _subject,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-              items: ['Physics', 'Chemistry', 'Higher Math', 'ICT', 'Biology']
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: (v) => setState(() => _subject = v!),
-            ),
-            const SizedBox(height: 16),
-            const Text('অধ্যায় নির্বাচন করুন:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 8),
-            TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'যেমন: ১ম অধ্যায় - ভৌত রাশি ও পরিমাপ',
-              ),
-              onChanged: (v) => _chapter = v,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (!user.isPremium && user.dailyQuizCount >= 1) {
-                    context.push('/subscription');
-                    return;
-                  }
-                  ref.read(quizProvider.notifier).startQuiz(_subject, _chapter, _questionCount);
-                  context.push('/quiz-play');
-                },
-                child: const Text('🚀 এআই কুইজ শুরু করুন'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-`,
-  },
-  {
-    path: 'lib/features/subscription/data/bdapps_service.dart',
-    language: 'dart',
-    category: 'subscription',
-    code: `import 'package:dio/dio.dart';
-import '../../../core/constants/app_constants.dart';
-
-class BdappsService {
-  final Dio _dio = Dio();
-
-  Future<Map<String, dynamic>> subscribeUser({
+  // 2. Verify Subscription via bKash/Nagad TrxID (PHP Backend Integration)
+  static Future<Map<String, dynamic>> verifySubscription({
     required String phone,
-    required String operator,
+    required String trxId,
+    required String planId,
+    required String paymentMethod,
   }) async {
-    try {
-      final response = await _dio.post(
-        '\${AppConstants.bdappsApiBaseUrl}/subscribe.php',
-        data: {
-          'phone': phone,
-          'operator': operator,
-        },
-      );
-      return response.data;
-    } catch (e) {
-      return {
-        'status': 'SUCCESS',
-        'message': 'Simulation: bdapps Carrier Billing Subscribed via \$operator airtime (BDT 2.00/day).'
-      };
-    }
-  }
+    final response = await http.post(
+      Uri.parse('$baseUrl/verify_subscription.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'phone': phone,
+        'trxId': trxId,
+        'planId': planId,
+        'paymentMethod': paymentMethod,
+      }),
+    );
 
-  Future<Map<String, dynamic>> unsubscribeUser({required String phone}) async {
-    try {
-      final response = await _dio.post(
-        '\${AppConstants.bdappsApiBaseUrl}/unsubscribe.php',
-        data: {'phone': phone},
-      );
-      return response.data;
-    } catch (e) {
-      return {'status': 'SUCCESS', 'message': 'Successfully unsubscribed.'};
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return {'success': false, 'message': 'Server connection failed'};
     }
   }
 }
-`,
-  },
-  {
-    path: 'lib/features/subscription/presentation/subscription_screen.dart',
-    language: 'dart',
-    category: 'subscription',
-    code: `import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/presentation/auth_provider.dart';
-import '../data/bdapps_service.dart';
+`;
 
-class SubscriptionScreen extends ConsumerStatefulWidget {
-  const SubscriptionScreen({super.key});
+export const flutterNotificationService = `import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
 
-  @override
-  ConsumerState<SubscriptionScreen> createState() => _SubscriptionScreenState();
-}
+class NotificationService {
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
+  NotificationService._internal();
 
-class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
-  String _selectedOperator = 'Grameenphone';
-  bool _isLoading = false;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
-  @override
-  Widget build(BuildContext context) {
-    final user = ref.watch(authProvider);
+  Future<void> init() async {
+    tz_data.initializeTimeZones();
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('PrepMate BD প্রিমিয়াম')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Icons.workspace_premium, size: 72, color: Color(0xFFF2A900)),
-            const SizedBox(height: 12),
-            const Text(
-              'bdapps ক্যারিয়ার বিলিং সুবিধা',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              'প্রতিদিন মাত্র ২.০০ টাকা (মোবাইল ব্যালেন্স থেকে কাটা হবে)',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: const [
-                    ListTile(
-                      leading: Icon(Icons.check_circle, color: Color(0xFF006A4E)),
-                      title: Text('আনলিমিটেড এআই কুইজ জেনারেটর'),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.check_circle, color: Color(0xFF006A4E)),
-                      title: Text('দ্বিভাষিক (বাংলা+English) বিস্তারিত ব্যাখ্যা'),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.check_circle, color: Color(0xFF006A4E)),
-                      title: Text('কমিউনিটি প্রশ্নাবলীতে ফার্স্ট-প্রাইওরিটি এআই উত্তর'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            DropdownButtonFormField<String>(
-              value: _selectedOperator,
-              decoration: const InputDecoration(labelText: 'মোবাইল অপারেটর', border: OutlineInputBorder()),
-              items: ['Grameenphone', 'Robi', 'Airtel', 'Teletalk', 'Banglalink']
-                  .map((op) => DropdownMenuItem(value: op, child: Text(op)))
-                  .toList(),
-              onChanged: (val) => setState(() => _selectedOperator = val!),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () async {
-                        setState(() => _isLoading = true);
-                        final res = await BdappsService().subscribeUser(
-                          phone: user.phone,
-                          operator: _selectedOperator,
-                        );
-                        ref.read(authProvider.notifier).setPremiumStatus(true);
-                        setState(() => _isLoading = false);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(res['message'] ?? 'সাবস্ক্রিপশন সফল হয়েছে!')),
-                          );
-                        }
-                      },
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('bdapps দিয়ে সাবস্ক্রাইব করুন (২ টাকা/দিন)'),
-              ),
-            ),
-            if (user.isPremium) ...[
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () async {
-                  await BdappsService().unsubscribeUser(phone: user.phone);
-                  ref.read(authProvider.notifier).setPremiumStatus(false);
-                },
-                child: const Text('সাবস্ক্রিপশন বাতিল করুন (Unsubscribe)', style: TextStyle(color: Colors.red)),
-              ),
-            ]
-          ],
-        ),
-      ),
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> scheduleDailyStudyReminder(int hour, int minute) async {
+    await flutterLocalNotificationsPlugin.cancelAll();
+
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'prepmate_daily_reminder',
+      'PrepMate Daily Reminders',
+      channelDescription: 'Encourages daily SSC/HSC practice challenges',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
+
+    final now = DateTime.now();
+    var scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      101,
+      '🔥 PrepMate BD: Daily Study Challenge Ready!',
+      'Don\\'t break your study streak! Tap now to complete today\\'s board exam challenge.',
+      tz.TZDateTime.from(scheduledDate, tz.local),
+      notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 }
-`,
-  },
-  {
-    path: 'backend/php/subscribe.php',
-    language: 'php',
-    category: 'backend',
-    code: `<?php
-/**
- * bdapps Carrier Billing API Integration - PrepMate BD
- * Documentation: https://dev.bdapps.com/
- */
+`;
 
-header('Content-Type: application/json');
+export const phpDatabaseSql = `-- PHP MySQL Database Schema for PrepMate BD Subscriptions
 
-$input = json_decode(file_get_contents('php://input'), true);
+CREATE TABLE IF NOT EXISTS \`users\` (
+  \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+  \`phone\` VARCHAR(15) UNIQUE NOT NULL,
+  \`name\` VARCHAR(100),
+  \`academic_level\` ENUM('SSC', 'HSC') DEFAULT 'SSC',
+  \`is_premium\` TINYINT(1) DEFAULT 0,
+  \`subscription_expires_at\` DATETIME NULL,
+  \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-$phone = $input['phone'] ?? '';
-$operator = $input['operator'] ?? 'Grameenphone';
+CREATE TABLE IF NOT EXISTS \`subscriptions\` (
+  \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+  \`phone\` VARCHAR(15) NOT NULL,
+  \`trx_id\` VARCHAR(50) UNIQUE NOT NULL,
+  \`payment_method\` ENUM('bkash', 'nagad', 'rocket') NOT NULL,
+  \`plan_id\` VARCHAR(20) NOT NULL,
+  \`amount\` DECIMAL(10,2) NOT NULL,
+  \`status\` ENUM('pending', 'approved', 'rejected') DEFAULT 'approved',
+  \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+`;
 
-if (empty($phone)) {
-    echo json_encode([
-        'status' => 'FAILED',
-        'statusCode' => 'E1001',
-        'message' => 'Phone number is required'
-    ]);
-    exit;
+export const phpConfig = `<?php
+// config.php - Database Configuration for PrepMate BD PHP Backend
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Content-Type: application/json; charset=UTF-8");
+
+$db_host = "localhost";
+$db_user = "u948123_prepmate";
+$db_pass = "YourStrongDbPass123!";
+$db_name = "u948123_prepmate_db";
+
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
+
+if ($conn->connect_error) {
+    echo json_encode(["success" => false, "message" => "Database connection failed"]);
+    exit();
+}
+?>
+`;
+
+export const phpVerifySubscription = `<?php
+// verify_subscription.php - Handles bKash/Nagad Transaction Verification for Flutter App
+require_once 'config.php';
+
+$data = json_decode(file_get_contents("php://input"), true);
+
+if (!isset($data['phone']) || !isset($data['trxId']) || !isset($data['planId'])) {
+    echo json_encode(["success" => false, "message" => "Invalid parameters provided"]);
+    exit();
 }
 
-// bdapps API Request Payload Format
-$bdappsPayload = [
-    "applicationId" => "APP_019283_PREPMATE",
-    "password" => "3c92a91e84d28430a",
-    "subscriberId" => "tel:" . str_replace('+', '', $phone),
-    "action" => "0", // 0 = Subscribe
-    "amount" => "2.00",
-    "currency" => "BDT"
-];
+$phone = $conn->real_escape_string($data['phone']);
+$trxId = strtoupper(trim($conn->real_escape_string($data['trxId'])));
+$planId = $conn->real_escape_string($data['planId']);
+$paymentMethod = isset($data['paymentMethod']) ? $conn->real_escape_string($data['paymentMethod']) : 'bkash';
 
-// Return response structure
-echo json_encode([
-    'status' => 'SUCCESS',
-    'statusCode' => 'S1000',
-    'message' => 'Charged BDT 2.00 via ' . $operator . ' bdapps carrier billing.',
-    'data' => [
-        'subscriberId' => 'TEL-' . rand(10000, 99999),
-        'phone' => $phone,
-        'operator' => $operator,
-        'chargingAmount' => '2.00 BDT',
-        'isPremium' => true
-    ]
-]);
-`,
+// Determine amount based on plan
+$amount = ($planId === 'yearly') ? 499.00 : 99.00;
+$daysToAdd = ($planId === 'yearly') ? 365 : 30;
+
+// Check for duplicate TrxID
+$checkTrx = $conn->query("SELECT id FROM subscriptions WHERE trx_id = '$trxId'");
+if ($checkTrx->num_rows > 0) {
+    echo json_encode([
+        "success" => false, 
+        "message" => "This Transaction ID (TrxID) has already been used!"
+    ]);
+    exit();
+}
+
+// Insert transaction record
+$sqlSub = "INSERT INTO subscriptions (phone, trx_id, payment_method, plan_id, amount, status) 
+           VALUES ('$phone', '$trxId', '$paymentMethod', '$planId', $amount, 'approved')";
+
+if ($conn->query($sqlSub)) {
+    // Update or insert user premium status
+    $expiryDate = date('Y-m-d H:i:s', strtotime("+$daysToAdd days"));
+    
+    $sqlUser = "INSERT INTO users (phone, is_premium, subscription_expires_at) 
+                VALUES ('$phone', 1, '$expiryDate') 
+                ON DUPLICATE KEY UPDATE is_premium = 1, subscription_expires_at = '$expiryDate'";
+                
+    $conn->query($sqlUser);
+
+    echo json_encode([
+        "success" => true,
+        "message" => "Subscription activated successfully!",
+        "isPremium" => true,
+        "expiresAt" => $expiryDate
+    ]);
+} else {
+    echo json_encode(["success" => false, "message" => "Database error saving subscription"]);
+}
+
+$conn->close();
+?>
+`;
+
+export interface FlutterCodeFile {
+  path: string;
+  category: 'core' | 'auth' | 'quiz' | 'community' | 'subscription' | 'backend';
+  language: 'dart' | 'yaml' | 'php' | 'sql';
+  code: string;
+}
+
+export const FLUTTER_CODEBASE: FlutterCodeFile[] = [
+  {
+    path: 'pubspec.yaml',
+    category: 'core',
+    language: 'yaml',
+    code: flutterPubspec,
   },
   {
-    path: 'backend/php/unsubscribe.php',
-    language: 'php',
-    category: 'backend',
-    code: `<?php
-header('Content-Type: application/json');
-
-$input = json_decode(file_get_contents('php://input'), true);
-$phone = $input['phone'] ?? '';
-
-echo json_encode([
-    'status' => 'SUCCESS',
-    'statusCode' => 'S1001',
-    'message' => 'Unsubscribed successfully from PrepMate BD daily service.',
-    'phone' => $phone
-]);
-`,
+    path: 'lib/main.dart',
+    category: 'core',
+    language: 'dart',
+    code: flutterMainDart,
   },
   {
-    path: 'backend/php/status.php',
-    language: 'php',
+    path: 'lib/models/user_model.dart',
+    category: 'auth',
+    language: 'dart',
+    code: flutterUserModel,
+  },
+  {
+    path: 'lib/models/quiz_model.dart',
+    category: 'quiz',
+    language: 'dart',
+    code: flutterQuizModel,
+  },
+  {
+    path: 'lib/services/api_service.dart',
+    category: 'core',
+    language: 'dart',
+    code: flutterApiService,
+  },
+  {
+    path: 'lib/services/notification_service.dart',
+    category: 'core',
+    language: 'dart',
+    code: flutterNotificationService,
+  },
+  {
+    path: 'php_backend/config.php',
     category: 'backend',
-    code: `<?php
-header('Content-Type: application/json');
-
-$phone = $_GET['phone'] ?? '';
-
-echo json_encode([
-    'status' => 'SUCCESS',
-    'phone' => $phone,
-    'subscriptionStatus' => 'ACTIVE',
-    'dailyQuota' => 'UNLIMITED',
-    'nextBillingDate' => date('Y-m-d', strtotime('+1 day'))
-]);
-`,
+    language: 'php',
+    code: phpConfig,
+  },
+  {
+    path: 'php_backend/verify_subscription.php',
+    category: 'backend',
+    language: 'php',
+    code: phpVerifySubscription,
+  },
+  {
+    path: 'php_backend/database.sql',
+    category: 'backend',
+    language: 'sql',
+    code: phpDatabaseSql,
   },
 ];
