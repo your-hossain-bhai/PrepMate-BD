@@ -409,11 +409,11 @@ function MainApp() {
               title={lang === 'en' ? 'Daily Study Reminders' : 'ডেইলি রিমাইন্ডার সেট করুন'}
               className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/15 transition-all flex items-center gap-1.5 text-xs font-bold text-amber-300 shadow-sm relative active:scale-95"
             >
-              <BellRing className="w-4 h-4 text-amber-300 animate-pulse" />
+              <BellRing className="w-4 h-4 text-amber-300" />
               <span className="text-white">
                 {lang === 'en' ? 'Reminder' : 'রিমাইন্ডার'}
               </span>
-              <span className="w-2 h-2 bg-amber-400 rounded-full animate-ping" />
+              <span className="w-2 h-2 bg-amber-400 rounded-full" />
             </button>
 
             {/* Daytime / Nighttime Study Theme Switcher */}
@@ -490,7 +490,7 @@ function MainApp() {
       <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 space-y-5 relative z-10">
         {/* Offline Connection Alert Banner */}
         {!isOnline && (
-          <div className="p-3.5 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 border border-amber-400/40 rounded-2xl flex items-center justify-between gap-3 text-white text-xs backdrop-blur-md animate-pulse">
+          <div className="p-3.5 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 border border-amber-400/40 rounded-2xl flex items-center justify-between gap-3 text-white text-xs backdrop-blur-md">
             <div className="flex items-center gap-2.5">
               <div className="p-2 bg-amber-500/30 text-amber-300 rounded-xl shrink-0">
                 <WifiOff className="w-4 h-4" />
@@ -567,7 +567,7 @@ function MainApp() {
           </div>
         )}
         {/* Pure Student App Navigation Bar */}
-        <div className="bg-white/10 backdrop-blur-2xl p-2 rounded-2xl shadow-xl border border-white/20 flex items-center justify-around overflow-x-auto gap-1 no-scrollbar">
+        <div className="bg-white/10 backdrop-blur-2xl p-2 rounded-2xl shadow-xl border border-white/20 flex items-center justify-around overflow-x-auto gap-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <button
             onClick={() => {
               setActiveTab('quiz');
