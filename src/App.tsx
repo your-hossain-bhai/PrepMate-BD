@@ -364,13 +364,13 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#002b24] text-white flex flex-col font-sans relative overflow-x-hidden selection:bg-amber-400 selection:text-[#002b24]">
+    <div className="min-h-screen bg-[#002b24] text-white flex flex-col font-sans relative overflow-x-hidden selection:bg-amber-400 selection:text-[#002b24] app-container">
       {/* Background Glowing Glass Orbs */}
       <div className="fixed top-[-120px] right-[-120px] w-[600px] h-[600px] bg-emerald-500/10 blur-[140px] rounded-full pointer-events-none z-0"></div>
       <div className="fixed bottom-[-100px] left-[-100px] w-[500px] h-[500px] bg-amber-500/10 blur-[130px] rounded-full pointer-events-none z-0"></div>
 
       {/* Platform Header */}
-      <header className="bg-[#00231d]/90 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40 shadow-lg">
+      <header className="bg-[#00231d]/90 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40 shadow-lg app-header">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
           {/* Logo & Title */}
           <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto">
@@ -410,7 +410,7 @@ function MainApp() {
               className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/15 transition-all flex items-center gap-1.5 text-xs font-bold text-amber-300 shadow-sm relative active:scale-95"
             >
               <BellRing className="w-4 h-4 text-amber-300" />
-              <span className="text-white">
+              <span>
                 {lang === 'en' ? 'Reminder' : 'রিমাইন্ডার'}
               </span>
               <span className="w-2 h-2 bg-amber-400 rounded-full" />
@@ -425,12 +425,12 @@ function MainApp() {
               {theme === 'dark' ? (
                 <>
                   <Sun className="w-4 h-4 text-amber-300" />
-                  <span className="text-amber-200">{lang === 'en' ? 'Day' : 'দিন'}</span>
+                  <span>{lang === 'en' ? 'Day' : 'দিন'}</span>
                 </>
               ) : (
                 <>
                   <Moon className="w-4 h-4 text-amber-500" />
-                  <span className="text-emerald-900 font-extrabold">{lang === 'en' ? 'Night' : 'রাত'}</span>
+                  <span className="font-extrabold">{lang === 'en' ? 'Night' : 'রাত'}</span>
                 </>
               )}
             </button>
@@ -567,7 +567,7 @@ function MainApp() {
           </div>
         )}
         {/* Pure Student App Navigation Bar */}
-        <div className="bg-white/10 backdrop-blur-2xl p-2 rounded-2xl shadow-xl border border-white/20 flex items-center justify-around overflow-x-auto gap-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="bg-white/10 backdrop-blur-2xl p-2 rounded-2xl shadow-xl border border-white/20 flex items-center justify-around overflow-x-auto gap-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden app-nav">
           <button
             onClick={() => {
               setActiveTab('quiz');
@@ -575,7 +575,7 @@ function MainApp() {
             }}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === 'quiz'
-                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
+                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
@@ -587,7 +587,7 @@ function MainApp() {
             onClick={() => setActiveTab('bot')}
             className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === 'bot'
-                ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40'
+                ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40 active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
@@ -599,7 +599,7 @@ function MainApp() {
             onClick={() => setActiveTab('planner')}
             className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === 'planner'
-                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
+                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
@@ -611,7 +611,7 @@ function MainApp() {
             onClick={() => setActiveTab('community')}
             className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === 'community'
-                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
+                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
@@ -623,7 +623,7 @@ function MainApp() {
             onClick={() => setActiveTab('subscription')}
             className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === 'subscription'
-                ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40'
+                ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40 active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
@@ -644,7 +644,7 @@ function MainApp() {
             onClick={() => setActiveTab('profile')}
             className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === 'profile'
-                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)]'
+                ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >

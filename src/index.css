@@ -6,7 +6,7 @@
 }
 
 html.light {
-  --bg-app: #f1f5f9;
+  --bg-app: #f8fafc;
   --text-primary: #0f172a;
 }
 
@@ -19,37 +19,77 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* High-Contrast Light Mode (Daytime Study Session Overrides) */
-html.light .bg-[#002b24] {
+/* ==========================================================================
+   Daytime Light Mode Overrides (Polished High-Contrast Educational Theme)
+   ========================================================================== */
+
+/* Main canvas & surfaces */
+html.light .app-container {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.light header.app-header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light header.app-header h1 {
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#002b24\] {
   background-color: #ffffff !important;
   color: #0f172a !important;
+  border-color: #e2e8f0 !important;
 }
 
-html.light .bg-[#00221c] {
-  background-color: #f8fafc !important;
+html.light .bg-\[\#00231d\] {
+  background-color: #ffffff !important;
   color: #0f172a !important;
+  border-color: #e2e8f0 !important;
 }
 
-html.light .bg-[#003d34] {
-  background-color: #f8fafc !important;
+html.light .bg-\[\#00382d\] {
+  background-color: #ffffff !important;
   color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+  border-color: #e2e8f0 !important;
 }
 
-html.light .bg-white\/10,
-html.light .bg-white\/5 {
+/* Elevated Glass Cards in Light Mode */
+html.light .bg-white\/10 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
-  color: #0f172a !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+  color: #1e293b !important;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+}
+
+html.light .bg-white\/5 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
 }
 
 html.light .bg-white\/20 {
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
+  color: #0f172a !important;
 }
 
-html.light .text-white {
+html.light .bg-black\/30,
+html.light .bg-black\/40,
+html.light .bg-black\/20 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Text adjustments for high-readability in Light Mode */
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4 {
   color: #0f172a !important;
 }
 
@@ -57,22 +97,37 @@ html.light .text-emerald-200,
 html.light .text-emerald-300,
 html.light .text-emerald-200\/80,
 html.light .text-emerald-300\/80,
-html.light .text-emerald-300\/70 {
+html.light .text-emerald-300\/70,
+html.light .text-emerald-100 {
+  color: #065f46 !important;
+}
+
+html.light .text-emerald-400 {
   color: #047857 !important;
 }
 
-html.light .text-amber-300,
-html.light .text-amber-400 {
-  color: #d97706 !important;
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #334155 !important;
 }
 
-html.light .border-white\/20,
-html.light .border-white\/10,
-html.light .border-white\/15,
-html.light .border-white\/30 {
-  border-color: #e2e8f0 !important;
+/* Navigation bar in Light Mode */
+html.light .app-nav {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
 }
 
+html.light .app-nav button:not(.active-tab) {
+  color: #475569 !important;
+}
+
+html.light .app-nav button:not(.active-tab):hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Form controls */
 html.light input,
 html.light select,
 html.light textarea {
@@ -81,8 +136,24 @@ html.light textarea {
   border-color: #cbd5e1 !important;
 }
 
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
 html.light select option {
   background-color: #ffffff !important;
   color: #0f172a !important;
+}
+
+/* Footer in Light Mode */
+html.light footer {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+html.light footer p {
+  color: #475569 !important;
 }
 
