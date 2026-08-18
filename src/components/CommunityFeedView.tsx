@@ -4,6 +4,7 @@ import { INITIAL_POSTS } from '../data/mockCommunity';
 import { useLanguage } from '../LanguageContext';
 import { ThumbsUp, MessageSquare, Send, PlusCircle, Bot, Sparkles, Filter, Loader2, Trophy, Users } from 'lucide-react';
 import { Leaderboard } from './Leaderboard';
+import { cleanMathText } from '../utils/mathFormatter';
 
 interface CommunityFeedViewProps {
   user: UserProfile;
@@ -246,7 +247,7 @@ export const CommunityFeedView: React.FC<CommunityFeedViewProps> = ({ user }) =>
 
                 {/* Question Text */}
                 <p className="text-sm font-medium text-slate-100 leading-relaxed whitespace-pre-line pt-1">
-                  {post.questionText}
+                  {cleanMathText(post.questionText)}
                 </p>
 
                 {/* Actions Bar */}
@@ -305,7 +306,7 @@ export const CommunityFeedView: React.FC<CommunityFeedViewProps> = ({ user }) =>
                           </span>
                           <span className="text-[10px] text-emerald-300/60 font-mono">{comment.timestamp}</span>
                         </div>
-                        <p className="whitespace-pre-line leading-relaxed text-emerald-100/90">{comment.text}</p>
+                        <p className="whitespace-pre-line leading-relaxed text-emerald-100/90">{cleanMathText(comment.text)}</p>
                       </div>
                     ))}
 

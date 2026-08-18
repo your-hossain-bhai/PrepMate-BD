@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { QuizQuestion, UserProfile } from '../types';
 import { useLanguage } from '../LanguageContext';
 import { Award, CheckCircle2, XCircle, RotateCcw, Bot, Sparkles, ChevronDown, ChevronUp, Loader2, Share2, Check, Copy } from 'lucide-react';
+import { cleanMathText } from '../utils/mathFormatter';
 
 interface QuizResultsViewProps {
   user: UserProfile;
@@ -212,7 +213,7 @@ export const QuizResultsView: React.FC<QuizResultsViewProps> = ({
                     ) : (
                       <XCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                     )}
-                    <p className="font-bold text-white text-sm leading-relaxed">{ans.question.question}</p>
+                    <p className="font-bold text-white text-sm leading-relaxed">{cleanMathText(ans.question.question)}</p>
                   </div>
                 </div>
 
@@ -220,13 +221,13 @@ export const QuizResultsView: React.FC<QuizResultsViewProps> = ({
                   <div>
                     <span className="font-semibold text-emerald-300/70">{lang === 'en' ? 'Your Answer: ' : 'আপনার উত্তর: '}</span>
                     <span className={isCorrect ? 'font-bold text-emerald-300' : 'font-bold text-rose-300'}>
-                      {ans.selectedIndex !== null ? ans.question.options[ans.selectedIndex] : (lang === 'en' ? 'Not Answered' : 'উত্তর দেননি')}
+                      {ans.selectedIndex !== null ? cleanMathText(ans.question.options[ans.selectedIndex]) : (lang === 'en' ? 'Not Answered' : 'উত্তর দেননি')}
                     </span>
                   </div>
                   <div>
                     <span className="font-semibold text-emerald-300/70">{lang === 'en' ? 'Correct Answer: ' : 'সঠিক উত্তর: '}</span>
                     <span className="font-bold text-emerald-300">
-                      {ans.question.options[ans.question.correctIndex]}
+                      {cleanMathText(ans.question.options[ans.question.correctIndex])}
                     </span>
                   </div>
                 </div>
@@ -258,7 +259,7 @@ export const QuizResultsView: React.FC<QuizResultsViewProps> = ({
                         <Sparkles className="w-4 h-4 text-amber-400" /> Gemini AI Tutor Explanation:
                       </div>
                       <div className="whitespace-pre-line text-emerald-100/90 leading-relaxed pt-1">
-                        {expandedAiExplanation[ans.question.id]}
+                        {cleanMathText(expandedAiExplanation[ans.question.id])}
                       </div>
                     </div>
                   )}

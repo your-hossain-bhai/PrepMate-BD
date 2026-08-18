@@ -14,6 +14,57 @@ const PORT = 3000;
 
 app.use(express.json());
 
+// Helper function to sanitize formulas and strip LaTeX dollar signs and commands
+function cleanMathText(text: string | undefined | null): string {
+  if (!text) return '';
+  let cleaned = text
+    .replace(/\\times\b/g, '×')
+    .replace(/\\cdot\b/g, '·')
+    .replace(/\\div\b/g, '÷')
+    .replace(/\\pm\b/g, '±')
+    .replace(/\\mp\b/g, '∓')
+    .replace(/\\approx\b/g, '≈')
+    .replace(/\\neq\b/g, '≠')
+    .replace(/\\leq?\b/g, '≤')
+    .replace(/\\geq?\b/g, '≥')
+    .replace(/\\theta\b/g, 'θ')
+    .replace(/\\alpha\b/g, 'α')
+    .replace(/\\beta\b/g, 'β')
+    .replace(/\\gamma\b/g, 'γ')
+    .replace(/\\Delta\b/g, 'Δ')
+    .replace(/\\delta\b/g, 'δ')
+    .replace(/\\lambda\b/g, 'λ')
+    .replace(/\\mu\b/g, 'μ')
+    .replace(/\\pi\b/g, 'π')
+    .replace(/\\degree\b/g, '°')
+    .replace(/\^\\circ\b/g, '°')
+    .replace(/\^\{\\circ\}/g, '°')
+    .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1 / $2)')
+    .replace(/\\dfrac\{([^{}]+)\}\{([^{}]+)\}/g, '($1 / $2)')
+    .replace(/\\sqrt\{([^{}]+)\}/g, '√($1)')
+    .replace(/\\sqrt\[3\]\{([^{}]+)\}/g, '∛($1)')
+    .replace(/_0\b/g, '₀')
+    .replace(/_1\b/g, '₁')
+    .replace(/_2\b/g, '₂')
+    .replace(/_3\b/g, '₃')
+    .replace(/_4\b/g, '₄')
+    .replace(/\^2\b/g, '²')
+    .replace(/\^3\b/g, '³')
+    .replace(/\^4\b/g, '⁴')
+    .replace(/\^0\b/g, '⁰')
+    .replace(/\^1\b/g, '¹')
+    .replace(/\^2/g, '²')
+    .replace(/\^3/g, '³')
+    .replace(/\\text\{([^{}]+)\}/g, '$1')
+    .replace(/\\mathrm\{([^{}]+)\}/g, '$1')
+    .replace(/\$\$([^\$]+)\$\$/g, '$1')
+    .replace(/\$([^\$]+)\$/g, '$1')
+    .replace(/\$([a-zA-Z0-9_\\^])/g, '$1')
+    .replace(/([a-zA-Z0-9_\\^])\$/g, '$1')
+    .replace(/\\\\/g, '\n');
+  return cleaned.trim();
+}
+
 // Initialize Gemini Client
 const ai = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({
@@ -150,6 +201,7 @@ Requirements:
 3. Provide exactly 4 options per question.
 4. Provide the 0-based index of the correct option.
 5. Provide a clear, highly educational explanation showing step-by-step formula solution or memory shortcut.
+6. CRITICAL MATH FORMATTING RULE: NEVER use LaTeX delimiters like $...$ or $$...$$. Never output dollar signs ($) around equations. Write clean, readable plain text formulas directly with unicode characters (e.g. v = u - gt, h = v₀² / (2g) = 20.4 m, ², ³, √, ×, ÷, ±, θ, π, m/s², °C).
 
 Return the result STRICTLY as a JSON array adhering to this schema:
 [
@@ -188,7 +240,13 @@ Return the result STRICTLY as a JSON array adhering to this schema:
     });
 
     const jsonText = response.text || '[]';
-    const questions = JSON.parse(jsonText);
+    const rawQuestions = JSON.parse(jsonText);
+    const questions = rawQuestions.map((q: any) => ({
+      ...q,
+      question: cleanMathText(q.question),
+      options: Array.isArray(q.options) ? q.options.map((opt: string) => cleanMathText(opt)) : q.options,
+      explanation: cleanMathText(q.explanation),
+    }));
 
     return res.json({ questions, source: 'gemini' });
   } catch (err: any) {
@@ -222,17 +280,19 @@ User Picked: ${selectedOption}
 Correct Answer: ${correctOption}
 Subject: ${subject}
 
-Provide a encouraging, clear, and structured bilingual (Bangla + English) explanation with:
-1. 🎯 Direct Answer & Core Concept
-2. 📐 Step-by-Step Calculation / Logic
-3. 📌 Pro-Tip for SSC/HSC Board Exams`;
+Requirements:
+1. Provide an encouraging, clear, and structured bilingual (Bangla + English) explanation with:
+   - 🎯 Direct Answer & Core Concept
+   - 📐 Step-by-Step Calculation / Logic
+   - 📌 Pro-Tip for SSC/HSC Board Exams
+2. CRITICAL MATH FORMATTING RULE: NEVER use LaTeX delimiters like $...$ or $$...$$. Never output dollar signs ($) around equations. Write clean, readable plain text formulas directly with unicode characters (e.g. v = u - gt, h = v₀² / (2g) = 20.4 m, ², ³, √, ×, ÷, ±, θ, π, m/s², °C).`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
       contents: prompt,
     });
 
-    return res.json({ explanation: response.text });
+    return res.json({ explanation: cleanMathText(response.text) });
   } catch (err: any) {
     return res.json({
       explanation: `AI Tutor response temporarily generated offline. Please review your textbook formulas for ${req.body.subject}.`,
@@ -265,7 +325,12 @@ STRICT FOCUS RULE & OFF-TOPIC GUARDRAIL:
    - YOU MUST IMMEDIATELY DECLINE TO ANSWER.
    - REMIND THEM IN AN ENCOURAGING YET FIRM MANNER THAT YOU ARE A DEDICATED STUDY BOT CREATED TO KEEP THEM ATTENTIVE AND FOCUSED ON THEIR BOARD EXAM PREPARATION.
    - REDIRECT THEM BACK TO THEIR ACADEMIC GOALS.
-   - Follow the language rule above when declining (e.g. if asked in English about a movie, decline in English; if asked in Bangla or Banglish about a movie, decline in Bangla).`;
+   - Follow the language rule above when declining (e.g. if asked in English about a movie, decline in English; if asked in Bangla or Banglish about a movie, decline in Bangla).
+
+CRITICAL MATH FORMATTING RULE:
+- NEVER use LaTeX dollar signs ($...$ or $$...$$).
+- Never wrap math equations in dollar signs.
+- Output clean, readable formulas using direct unicode symbols (e.g., v = v₀ - gt = 20 - (9.8 × 4) = -19.2, ², ³, √, ×, ÷, ±, θ, π, m/s², °C).`;
 
     const lowerMsg = (message || '').toLowerCase();
 
@@ -355,7 +420,7 @@ STRICT FOCUS RULE & OFF-TOPIC GUARDRAIL:
 
     const reply = response.text || (language === 'en' ? 'I could not process the request.' : 'দুঃখিত, কোনো উত্তর পাওয়া যায়নি।');
 
-    return res.json({ reply });
+    return res.json({ reply: cleanMathText(reply) });
   } catch (err: any) {
     console.error('Study bot API error:', err);
     return res.status(500).json({

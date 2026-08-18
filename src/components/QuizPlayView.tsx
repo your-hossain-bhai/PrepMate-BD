@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { QuizQuestion } from '../types';
 import { useLanguage } from '../LanguageContext';
 import { Clock, CheckCircle2, XCircle, ArrowRight, HelpCircle, Loader2, Sparkles } from 'lucide-react';
+import { cleanMathText } from '../utils/mathFormatter';
 
 interface QuizPlayViewProps {
   questions: QuizQuestion[];
@@ -162,7 +163,7 @@ export const QuizPlayView: React.FC<QuizPlayViewProps> = ({
             Q{currentIndex + 1}
           </span>
           <h3 className="text-base sm:text-lg font-bold text-white leading-relaxed">
-            {currentQ.question}
+            {cleanMathText(currentQ.question)}
           </h3>
         </div>
 
@@ -195,7 +196,7 @@ export const QuizPlayView: React.FC<QuizPlayViewProps> = ({
                   <span className="w-6 h-6 rounded-full border border-white/20 font-mono text-xs flex items-center justify-center font-bold shrink-0 bg-white/10 text-white">
                     {String.fromCharCode(65 + idx)}
                   </span>
-                  <span>{option}</span>
+                  <span>{cleanMathText(option)}</span>
                 </div>
 
                 {showFeedback && (
@@ -238,7 +239,7 @@ export const QuizPlayView: React.FC<QuizPlayViewProps> = ({
             </div>
 
             <p className="text-emerald-200/90 whitespace-pre-line leading-relaxed pt-2 border-t border-white/10">
-              {currentQ.explanation}
+              {cleanMathText(currentQ.explanation)}
             </p>
           </div>
         )}

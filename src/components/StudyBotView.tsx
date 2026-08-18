@@ -17,6 +17,7 @@ import {
   Zap,
   Target,
 } from 'lucide-react';
+import { cleanMathText } from '../utils/mathFormatter';
 
 interface StudyBotViewProps {
   user: UserProfile;
@@ -327,7 +328,7 @@ export const StudyBotView: React.FC<StudyBotViewProps> = ({ user, onUpdateUser }
 
                   {/* Text Content */}
                   <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
-                    {msg.text}
+                    {cleanMathText(msg.text)}
                   </div>
 
                   {/* Footer Meta & Actions */}
