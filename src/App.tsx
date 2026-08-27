@@ -456,8 +456,8 @@ function MainApp() {
               }}
               className="flex items-center gap-2.5 text-left group"
             >
-              <div className="w-10 h-10 bg-amber-400 text-[#002b24] rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-amber-900/30 group-hover:scale-105 transition-transform">
-                P
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/20 group-hover:scale-105 transition-transform overflow-hidden p-1">
+                <img src="/logo.png" alt="PrepMate BD Logo" className="w-full h-full object-contain" />
               </div>
 
               <div>
@@ -465,9 +465,6 @@ function MainApp() {
                   <h1 className="text-xl font-bold tracking-tight text-white">
                     PrepMate <span className="text-amber-400">BD</span>
                   </h1>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-bold">
-                    🇧🇩 SSC/HSC
-                  </span>
                 </div>
                 <p className="text-[11px] text-emerald-300/80 hidden sm:block tracking-wide">
                   {t('appTagline')}

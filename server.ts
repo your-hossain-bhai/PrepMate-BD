@@ -812,7 +812,7 @@ function getCurriculumStudyRoutine(level: string, group: string, isEn: boolean) 
 // Documentation: https://dev.bdapps.com/API_Documentation/bdapps_tap_api.html
 const BDAPPS_APP_ID = process.env.BDAPPS_APP_ID || '';
 const BDAPPS_APP_PASSWORD = process.env.BDAPPS_APP_PASSWORD || '';
-const BDAPPS_BASE_URL = process.env.BDAPPS_BASE_URL || 'https://api.bdapps.com';
+const BDAPPS_BASE_URL = process.env.BDAPPS_BASE_URL || 'https://developer.bdapps.com';
 
 const isLiveBdappsConfigured = (): boolean => {
   return Boolean(
@@ -873,6 +873,12 @@ app.post('/api/bdapps/otp/request', async (req, res) => {
             password: BDAPPS_APP_PASSWORD,
             subscriberId: subscriberId,
             applicationHash: 'PREPMATE',
+            applicationMetaData: {
+              client: "WEBAPP",
+              device: "Desktop/Mobile",
+              os: "Browser",
+              appCode: "https://prepmate.bd"
+            }
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -938,6 +944,12 @@ app.post('/api/bdapps/otp/verify', async (req, res) => {
             password: BDAPPS_APP_PASSWORD,
             referenceNo,
             otp: otp.trim(),
+            applicationMetaData: {
+              client: "WEBAPP",
+              device: "Desktop/Mobile",
+              os: "Browser",
+              appCode: "https://prepmate.bd"
+            }
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -1044,6 +1056,12 @@ app.post('/api/bdapps/subscribe', async (req, res) => {
             password: BDAPPS_APP_PASSWORD,
             subscriberId: subscriberId,
             action: '1', // 1 = Subscribe / Register
+            applicationMetaData: {
+              client: "WEBAPP",
+              device: "Desktop/Mobile",
+              os: "Browser",
+              appCode: "https://prepmate.bd"
+            }
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -1130,6 +1148,12 @@ app.post('/api/bdapps/unsubscribe', async (req, res) => {
             password: BDAPPS_APP_PASSWORD,
             subscriberId: subscriberId,
             action: '0', // 0 = Unsubscribe / Unregister
+            applicationMetaData: {
+              client: "WEBAPP",
+              device: "Desktop/Mobile",
+              os: "Browser",
+              appCode: "https://prepmate.bd"
+            }
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -1202,6 +1226,12 @@ app.get('/api/bdapps/status', async (req, res) => {
             applicationId: BDAPPS_APP_ID,
             password: BDAPPS_APP_PASSWORD,
             subscriberId: subscriberId,
+            applicationMetaData: {
+              client: "WEBAPP",
+              device: "Desktop/Mobile",
+              os: "Browser",
+              appCode: "https://prepmate.bd"
+            }
           }),
           signal: AbortSignal.timeout(3500),
         });
