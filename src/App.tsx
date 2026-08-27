@@ -474,14 +474,14 @@ function MainApp() {
           </div>
 
             {/* Controls: Language Switcher, Install, Reminder & Academic Level Toggle */}
-          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap justify-start sm:justify-end w-full sm:w-auto">
+          <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-start sm:justify-end w-full sm:w-auto mb-3 sm:mb-0">
             {/* Install on Mobile App Button */}
             <button
               onClick={() => setIsInstallModalOpen(true)}
               title={lang === 'en' ? 'Install App on Phone' : 'মোবাইলে ইনস্টল করুন'}
-              className="bg-emerald-500 hover:bg-emerald-400 text-[#002b24] px-3 py-1.5 rounded-2xl transition-all flex items-center gap-1.5 text-xs font-extrabold shadow-md shadow-emerald-950/30 active:scale-95"
+              className="bg-emerald-500 hover:bg-emerald-400 text-[#002b24] px-4 py-2 rounded-2xl transition-all flex items-center gap-2 text-sm font-extrabold shadow-md shadow-emerald-950/30 active:scale-95"
             >
-              <Smartphone className="w-3.5 h-3.5" />
+              <Smartphone className="w-4 h-4" />
               <span>{lang === 'en' ? 'Install' : 'ইনস্টল'}</span>
             </button>
 
@@ -489,20 +489,20 @@ function MainApp() {
             <button
               onClick={() => setIsReminderModalOpen(true)}
               title={lang === 'en' ? 'Daily Study Reminders' : 'ডেইলি রিমাইন্ডার সেট করুন'}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/15 transition-all flex items-center gap-1.5 text-xs font-bold text-amber-300 shadow-sm relative active:scale-95"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 transition-all flex items-center gap-2 text-sm font-bold text-amber-300 shadow-sm relative active:scale-95"
             >
               <BellRing className="w-4 h-4 text-amber-300" />
               <span>
                 {lang === 'en' ? 'Reminder' : 'রিমাইন্ডার'}
               </span>
-              <span className="w-2 h-2 bg-amber-400 rounded-full" />
+              <span className="w-2.5 h-2.5 bg-amber-400 rounded-full" />
             </button>
 
             {/* Language Switcher (Bengali vs English) */}
-            <div className="bg-black/30 backdrop-blur-md p-1 rounded-2xl flex text-xs font-bold border border-white/15 items-center gap-1">
+            <div className="bg-black/30 backdrop-blur-md p-1.5 rounded-2xl flex text-sm font-bold border border-white/15 items-center gap-1">
               <button
                 onClick={() => setLang('bn')}
-                className={`px-3 py-1 rounded-xl transition-all flex items-center gap-1 ${
+                className={`px-4 py-1.5 rounded-xl transition-all flex items-center gap-2 ${
                   lang === 'bn'
                     ? 'bg-amber-400 text-[#002b24] shadow-md font-extrabold'
                     : 'text-emerald-200/80 hover:text-white'
@@ -512,7 +512,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => setLang('en')}
-                className={`px-3 py-1 rounded-xl transition-all flex items-center gap-1 ${
+                className={`px-4 py-1.5 rounded-xl transition-all flex items-center gap-2 ${
                   lang === 'en'
                     ? 'bg-amber-400 text-[#002b24] shadow-md font-extrabold'
                     : 'text-emerald-200/80 hover:text-white'
@@ -523,10 +523,10 @@ function MainApp() {
             </div>
 
             {/* Academic Level Toggle */}
-            <div className="bg-black/30 backdrop-blur-md p-1 rounded-2xl flex text-xs font-bold border border-white/15 items-center gap-1">
+            <div className="bg-black/30 backdrop-blur-md p-1.5 rounded-2xl flex text-sm font-bold border border-white/15 items-center gap-1">
               <button
                 onClick={() => handleUpdateUser({ academicLevel: 'SSC' })}
-                className={`px-3 py-1 rounded-xl transition-all ${
+                className={`px-4 py-1.5 rounded-xl transition-all ${
                   user.academicLevel === 'SSC'
                     ? 'bg-amber-400 text-[#002b24] shadow-md font-extrabold'
                     : 'text-emerald-200/80 hover:text-white'
@@ -536,7 +536,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => handleUpdateUser({ academicLevel: 'HSC' })}
-                className={`px-3 py-1 rounded-xl transition-all ${
+                className={`px-4 py-1.5 rounded-xl transition-all ${
                   user.academicLevel === 'HSC'
                     ? 'bg-amber-400 text-[#002b24] shadow-md font-extrabold'
                     : 'text-emerald-200/80 hover:text-white'
@@ -549,17 +549,17 @@ function MainApp() {
             <button
               onClick={() => setIsAuthModalOpen(true)}
               title={lang === 'en' ? 'Student Account / Login' : 'শিক্ষার্থী অ্যাকাউন্ট / লগইন'}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/15 transition-all flex items-center gap-2 text-xs font-bold shadow-sm active:scale-95 text-emerald-200 hover:text-white"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 transition-all flex items-center gap-2 text-sm font-bold shadow-sm active:scale-95 text-emerald-200 hover:text-white"
             >
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
                   alt={user.name}
-                  className="w-4 h-4 rounded-full object-cover shrink-0"
+                  className="w-5 h-5 rounded-full object-cover shrink-0"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <User className="w-3.5 h-3.5 text-amber-400" />
+                <User className="w-4 h-4 text-amber-400" />
               )}
               <span className="max-w-[90px] sm:max-w-[120px] truncate text-white">
                 {user.authProvider && user.authProvider !== 'guest'
@@ -665,68 +665,70 @@ function MainApp() {
               setActiveTab('quiz');
               setQuizStep('config');
             }}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-sm font-bold transition-all shrink-0 ${
               activeTab === 'quiz'
                 ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
-            <Zap className="w-4 h-4 text-amber-300" />
+            <Zap className="w-5 h-5 sm:w-4 sm:h-4 text-amber-300" />
             <span>{t('aiQuizTab')}</span>
           </button>
 
           <button
             onClick={() => setActiveTab('bot')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-sm font-bold transition-all shrink-0 ${
               activeTab === 'bot'
                 ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40 active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
-            <Bot className="w-4 h-4 text-amber-300" />
+            <Bot className="w-5 h-5 sm:w-4 sm:h-4 text-amber-300" />
             <span>{t('studyBotTab')}</span>
           </button>
 
           <button
             onClick={() => setActiveTab('planner')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-sm font-bold transition-all shrink-0 ${
               activeTab === 'planner'
                 ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
-            <Calendar className="w-4 h-4 text-amber-300" />
+            <Calendar className="w-5 h-5 sm:w-4 sm:h-4 text-amber-300" />
             <span>{t('plannerTab')}</span>
           </button>
 
           <button
             onClick={() => setActiveTab('community')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-sm font-bold transition-all shrink-0 ${
               activeTab === 'community'
                 ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
-            <Users className="w-4 h-4 text-emerald-300" />
+            <Users className="w-5 h-5 sm:w-4 sm:h-4 text-emerald-300" />
             <span>{t('communityTab')}</span>
           </button>
 
           <button
             onClick={() => setActiveTab('subscription')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-sm font-bold transition-all shrink-0 ${
               activeTab === 'subscription'
                 ? 'bg-amber-400 text-[#002b24] font-extrabold shadow-lg shadow-amber-900/40 active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
-            <Crown className="w-4 h-4 text-amber-400" />
-            <span>{t('premiumTab')}</span>
+            <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2">
+              <Crown className="w-5 h-5 sm:w-4 sm:h-4 text-amber-400" />
+              <span>{t('premiumTab')}</span>
+            </div>
             {user.isPremium ? (
-              <span className="bg-emerald-500 text-[#002b24] text-[9px] px-1.5 py-0.2 rounded font-bold font-mono">
+              <span className="bg-emerald-500 text-[#002b24] text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded font-bold font-mono">
                 ACTIVE
               </span>
             ) : (
-              <span className="bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[9px] px-1.5 py-0.2 rounded font-mono">
+              <span className="bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded font-mono mt-1 sm:mt-0">
                 2.00 BDT/day
               </span>
             )}
@@ -734,13 +736,13 @@ function MainApp() {
 
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-sm font-bold transition-all shrink-0 ${
               activeTab === 'profile'
                 ? 'bg-emerald-500 text-white shadow-[0_4px_20px_rgba(16,185,129,0.4)] active-tab'
                 : 'text-emerald-200/80 hover:bg-white/10 hover:text-white'
             }`}
           >
-            <Smartphone className="w-4 h-4 text-emerald-300" />
+            <Smartphone className="w-5 h-5 sm:w-4 sm:h-4 text-emerald-300" />
             <span>{t('profileTab')}</span>
           </button>
         </div>
