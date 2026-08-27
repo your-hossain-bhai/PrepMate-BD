@@ -111,7 +111,7 @@ export const QuizConfigView: React.FC<QuizConfigViewProps> = ({
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-500/30 text-amber-300 px-3 py-1 rounded-full text-xs font-bold mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Gemini 3.6 Flash Engine
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Gemini 3.7 Flash AI Engine
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-white">{t('quizConfigTitle')}</h2>
             <p className="text-xs text-emerald-300/90 mt-1">

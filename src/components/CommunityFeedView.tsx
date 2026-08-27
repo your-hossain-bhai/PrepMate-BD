@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CommunityPost, UserProfile, CommentItem } from '../types';
-import { INITIAL_POSTS } from '../data/mockCommunity';
 import { useLanguage } from '../LanguageContext';
-import { ThumbsUp, MessageSquare, Send, PlusCircle, Bot, Sparkles, Filter, Loader2, Trophy, Users } from 'lucide-react';
+import { ThumbsUp, MessageSquare, Send, PlusCircle, Bot, Sparkles, Filter, Loader2, Trophy, Users, RefreshCw } from 'lucide-react';
 import { Leaderboard } from './Leaderboard';
 import { cleanMathText } from '../utils/mathFormatter';
+import {
+  fetchCommunityPostsFromFirestore,
+  saveCommunityPostToFirestore,
+  togglePostUpvoteInFirestore,
+  addCommentToPostInFirestore,
+} from '../firebase';
+import { INITIAL_POSTS } from '../data/mockCommunity';
 
 interface CommunityFeedViewProps {
   user: UserProfile;
@@ -16,6 +22,30 @@ export const CommunityFeedView: React.FC<CommunityFeedViewProps> = ({ user }) =>
   const [posts, setPosts] = useState<CommunityPost[]>(INITIAL_POSTS);
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState('All');
   const [showNewPostModal, setShowNewPostModal] = useState(false);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+
+  // Load from Firestore
+  useEffect(() => {
+    let isMounted = true;
+    const loadPosts = async () => {
+      setLoadingPosts(true);
+      try {
+        const firestorePosts = await fetchCommunityPostsFromFirestore();
+        if (isMounted && firestorePosts && firestorePosts.length > 0) {
+          setPosts(firestorePosts);
+        }
+      } catch (err) {
+        console.warn('Could not load Firestore posts, using initial baseline:', err);
+      } finally {
+        if (isMounted) setLoadingPosts(false);
+      }
+    };
+
+    loadPosts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // New post state
   const [newSubject, setNewSubject] = useState('Physics');
@@ -35,7 +65,8 @@ export const CommunityFeedView: React.FC<CommunityFeedViewProps> = ({ user }) =>
     (p) => selectedSubjectFilter === 'All' || p.subject.toLowerCase().includes(selectedSubjectFilter.toLowerCase())
   );
 
-  const handleToggleUpvote = (postId: string) => {
+  const handleToggleUpvote = async (postId: string) => {
+    // Optimistic UI update
     setPosts((prev) =>
       prev.map((p) => {
         if (p.id === postId) {
@@ -49,35 +80,47 @@ export const CommunityFeedView: React.FC<CommunityFeedViewProps> = ({ user }) =>
         return p;
       })
     );
+
+    try {
+      await togglePostUpvoteInFirestore(postId, user.uid);
+    } catch (e) {
+      console.warn('Firestore upvote sync error:', e);
+    }
   };
 
-  const handleCreatePost = (e: React.FormEvent) => {
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newQuestion.trim()) return;
 
     setNewPostLoading(true);
 
-    setTimeout(() => {
-      const newEntry: CommunityPost = {
-        id: `post-${Date.now()}`,
-        author: `${user.name} (${user.academicLevel})`,
-        level: user.academicLevel,
-        subject: newSubject,
-        questionText: newQuestion,
-        timestamp: lang === 'en' ? 'Just now' : 'এখনই',
-        upvotes: 1,
-        userUpvoted: true,
-        comments: [],
-      };
+    const newEntry: CommunityPost = {
+      id: `post-${Date.now()}`,
+      author: `${user.name} (${user.academicLevel})`,
+      level: user.academicLevel,
+      subject: newSubject,
+      questionText: newQuestion,
+      timestamp: lang === 'en' ? 'Just now' : 'এখনই',
+      upvotes: 1,
+      userUpvoted: true,
+      comments: [],
+    };
 
-      setPosts([newEntry, ...posts]);
-      setNewQuestion('');
-      setShowNewPostModal(false);
+    // Optimistic local update
+    setPosts([newEntry, ...posts]);
+    setNewQuestion('');
+    setShowNewPostModal(false);
+
+    try {
+      await saveCommunityPostToFirestore(newEntry);
+    } catch (err) {
+      console.warn('Firestore post save error:', err);
+    } finally {
       setNewPostLoading(false);
-    }, 400);
+    }
   };
 
-  const handleAddComment = (postId: string) => {
+  const handleAddComment = async (postId: string) => {
     if (!commentInput.trim()) return;
 
     const newComment: CommentItem = {
@@ -99,7 +142,14 @@ export const CommunityFeedView: React.FC<CommunityFeedViewProps> = ({ user }) =>
       })
     );
 
+    const textToSave = commentInput;
     setCommentInput('');
+
+    try {
+      await addCommentToPostInFirestore(postId, newComment);
+    } catch (e) {
+      console.warn('Firestore comment sync error:', e);
+    }
   };
 
   const handleTriggerAiTutorForPost = async (post: CommunityPost) => {
@@ -141,6 +191,9 @@ export const CommunityFeedView: React.FC<CommunityFeedViewProps> = ({ user }) =>
         })
       );
       setActiveCommentPostId(post.id);
+
+      // Save AI comment to Firestore as well
+      await addCommentToPostInFirestore(post.id, aiComment);
     } catch (err) {
       console.error(err);
     } finally {

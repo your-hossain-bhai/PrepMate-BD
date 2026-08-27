@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile, AcademicLevel } from '../types';
 import { useLanguage } from '../LanguageContext';
-import { Trophy, Medal, Flame, Crown, Sparkles, Star, BookOpen, Zap, Target, Award } from 'lucide-react';
+import { Trophy, Medal, Flame, Crown, Sparkles, Star, BookOpen, Zap, Target, Award, RefreshCw } from 'lucide-react';
+import { fetchLeaderboardFromFirestore, isFirebaseConfigured } from '../firebase';
 
 interface LeaderboardProps {
   currentUser: UserProfile;
@@ -23,11 +24,11 @@ export interface LeaderboardStudent {
 
 type SortCriterion = 'points' | 'quizzes' | 'chapters';
 
-const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
+const BASE_TOP_STUDENTS: LeaderboardStudent[] = [
   {
-    id: '1',
+    id: 'b1',
     rank: 1,
-    name: 'আরিফুর রহমান (Arifur)',
+    name: 'আরিফুর রহমান (Dhaka College)',
     level: 'HSC',
     board: 'Dhaka Board',
     points: 1850,
@@ -37,9 +38,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-amber-400 text-[#002b24]',
   },
   {
-    id: '2',
+    id: 'b2',
     rank: 2,
-    name: 'নুসরাত জাহান (Nusrat)',
+    name: 'নুসরাত জাহান (Chattogram College)',
     level: 'HSC',
     board: 'Chattogram Board',
     points: 1620,
@@ -49,9 +50,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-slate-300 text-[#002b24]',
   },
   {
-    id: '3',
+    id: 'b3',
     rank: 3,
-    name: 'সাদমান সাকিব (Sadman)',
+    name: 'সাদমান সাকিব (Rajshahi Collegiate)',
     level: 'SSC',
     board: 'Rajshahi Board',
     points: 1490,
@@ -61,9 +62,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-amber-700 text-white',
   },
   {
-    id: '4',
+    id: 'b4',
     rank: 4,
-    name: 'মেহজাবীন সুলতানা (Mehjabin)',
+    name: 'মেহজাবীন সুলতানা (Sylhet MC College)',
     level: 'HSC',
     board: 'Sylhet Board',
     points: 1310,
@@ -73,9 +74,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-emerald-500 text-white',
   },
   {
-    id: '5',
+    id: 'b5',
     rank: 5,
-    name: 'ফাহিম আহমেদ (Fahim)',
+    name: 'ফাহিম আহমেদ (Cumilla Zilla School)',
     level: 'SSC',
     board: 'Cumilla Board',
     points: 1180,
@@ -85,9 +86,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-emerald-600 text-white',
   },
   {
-    id: '6',
+    id: 'b6',
     rank: 6,
-    name: 'আনিকা মেহেরাজ (Anika)',
+    name: 'আনিকা মেহেরাজ (Barishal BM College)',
     level: 'HSC',
     board: 'Barishal Board',
     points: 1050,
@@ -97,9 +98,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-emerald-700 text-white',
   },
   {
-    id: '7',
+    id: 'b7',
     rank: 7,
-    name: 'রাফসান আল দীন (Rafsan)',
+    name: 'রাফসান আল দীন (Jashore Zilla School)',
     level: 'SSC',
     board: 'Jashore Board',
     points: 920,
@@ -109,9 +110,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-emerald-800 text-white',
   },
   {
-    id: '8',
+    id: 'b8',
     rank: 8,
-    name: 'সামিয়া পারভীন (Samiya)',
+    name: 'সামিয়া পারভীন (Dinajpur Govt. College)',
     level: 'HSC',
     board: 'Dinajpur Board',
     points: 840,
@@ -121,9 +122,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-teal-600 text-white',
   },
   {
-    id: '9',
+    id: 'b9',
     rank: 9,
-    name: 'মাহির ফয়সাল (Mahir)',
+    name: 'মাহির ফয়সাল (Mymensingh Zilla School)',
     level: 'SSC',
     board: 'Mymensingh Board',
     points: 760,
@@ -133,9 +134,9 @@ const MOCK_TOP_STUDENTS: LeaderboardStudent[] = [
     avatarBg: 'bg-teal-700 text-white',
   },
   {
-    id: '10',
+    id: 'b10',
     rank: 10,
-    name: 'তাসনিম আক্তার (Tasnim)',
+    name: 'তাসনিম আক্তার (Viqarunnisa Noon)',
     level: 'HSC',
     board: 'Dhaka Board',
     points: 690,
@@ -150,38 +151,79 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ currentUser }) => {
   const { lang, t } = useLanguage();
   const [filterLevel, setFilterLevel] = useState<'ALL' | AcademicLevel>('ALL');
   const [sortBy, setSortBy] = useState<SortCriterion>('points');
+  const [firestoreUsers, setFirestoreUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Inject current user dynamically if missing
-  const fullList = [...MOCK_TOP_STUDENTS];
-  const userInListIndex = fullList.findIndex((s) => s.id === currentUser.uid || s.name.includes(currentUser.name));
-
-  const userSolvedQuizzes = Math.max(12, currentUser.dailyQuizCount * 3 + 6);
-  const userMasteredChapters = Math.max(3, Math.floor(currentUser.points / 40));
-
-  if (userInListIndex === -1) {
-    fullList.push({
-      id: currentUser.uid || 'user-current',
-      rank: 12,
-      name: `${currentUser.name} (${t('youBadge')})`,
-      level: currentUser.academicLevel,
-      board: 'Dhaka Board',
-      points: currentUser.points,
-      quizzesSolved: userSolvedQuizzes,
-      chaptersMastered: userMasteredChapters,
-      streakDays: currentUser.streakDays,
-      isCurrentUser: true,
-      avatarBg: 'bg-amber-400 text-[#002b24]',
-    });
-  } else {
-    fullList[userInListIndex] = {
-      ...fullList[userInListIndex],
-      points: Math.max(fullList[userInListIndex].points, currentUser.points),
-      quizzesSolved: Math.max(fullList[userInListIndex].quizzesSolved, userSolvedQuizzes),
-      chaptersMastered: Math.max(fullList[userInListIndex].chaptersMastered, userMasteredChapters),
-      streakDays: Math.max(fullList[userInListIndex].streakDays, currentUser.streakDays),
-      isCurrentUser: true,
+  // Load real student profiles from Firestore
+  useEffect(() => {
+    let isMounted = true;
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchLeaderboardFromFirestore(filterLevel === 'ALL' ? undefined : filterLevel);
+        if (isMounted && Array.isArray(data)) {
+          setFirestoreUsers(data);
+        }
+      } catch (e) {
+        console.warn('Leaderboard live sync info:', e);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     };
-  }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, [filterLevel]);
+
+  // Merge Firestore students with base list
+  const combinedMap = new Map<string, LeaderboardStudent>();
+
+  BASE_TOP_STUDENTS.forEach((student) => {
+    combinedMap.set(student.id, student);
+  });
+
+  firestoreUsers.forEach((fbUser) => {
+    if (fbUser.name && fbUser.points !== undefined) {
+      const fbId = fbUser.id || fbUser.uid || `fb-${fbUser.name}`;
+      const solved = Math.max(1, (fbUser.quizHistory?.length || fbUser.dailyQuizCount || 0));
+      const mastered = Math.max(1, Math.floor((fbUser.points || 0) / 40));
+      combinedMap.set(fbId, {
+        id: fbId,
+        rank: 0,
+        name: fbUser.name,
+        level: fbUser.academicLevel || 'HSC',
+        board: fbUser.board || 'Dhaka Board',
+        points: fbUser.points || 0,
+        quizzesSolved: solved,
+        chaptersMastered: mastered,
+        streakDays: fbUser.streakDays || 1,
+        isCurrentUser: fbUser.uid === currentUser.uid,
+        avatarBg: 'bg-emerald-600 text-white',
+      });
+    }
+  });
+
+  // Inject / update current user
+  const userSolvedQuizzes = Math.max(1, (currentUser.quizHistory?.length || currentUser.dailyQuizCount * 3 || 6));
+  const userMasteredChapters = Math.max(1, Math.floor(currentUser.points / 40));
+  const curUserId = currentUser.uid || 'current_user';
+
+  combinedMap.set(curUserId, {
+    id: curUserId,
+    rank: 0,
+    name: `${currentUser.name} (${t('youBadge')})`,
+    level: currentUser.academicLevel,
+    board: 'Dhaka Board',
+    points: currentUser.points,
+    quizzesSolved: userSolvedQuizzes,
+    chaptersMastered: userMasteredChapters,
+    streakDays: currentUser.streakDays,
+    isCurrentUser: true,
+    avatarBg: 'bg-amber-400 text-[#002b24]',
+  });
+
+  const fullList = Array.from(combinedMap.values());
 
   // Filter list by SSC / HSC
   const categoryStudents = fullList.filter((s) => filterLevel === 'ALL' || s.level === filterLevel);

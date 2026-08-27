@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { useLanguage } from '../LanguageContext';
+import { playReminderChime } from '../utils/notificationAudio';
 import {
   Bell,
   BellRing,
@@ -70,6 +71,7 @@ export const StudyReminderModal: React.FC<StudyReminderModalProps> = ({
     }
 
     try {
+      playReminderChime();
       const res = await Notification.requestPermission();
       setPermission(res);
       if (res === 'granted') {
@@ -77,17 +79,21 @@ export const StudyReminderModal: React.FC<StudyReminderModalProps> = ({
         localStorage.setItem('prepmate_reminder_enabled', 'true');
         onUpdateUser({ reminderEnabled: true, reminderTime: time });
 
-        // Send a celebratory welcome notification immediately
-        new Notification(
-          isEnglish ? '🔔 Prepmate BD Study Reminder Activated!' : '🔔 প্রেপমেট বিডি ডেইলি রিমাইন্ডার চালু হয়েছে!',
-          {
-            body: isEnglish
-              ? `Great job! You will receive daily reminders at ${time} to complete your ${user.academicLevel} Board Exam challenge!`
-              : `অভিনন্দন! প্রতিদিন রাত ${time} টায় আপনার ${user.academicLevel} বোর্ড পরীক্ষা প্রস্তুতির কথা মনে করিয়ে দেওয়া হবে!`,
-            icon: '/icon.png',
-            tag: 'prepmate-welcome-reminder',
-          }
-        );
+        try {
+          // Send a celebratory welcome notification immediately
+          new Notification(
+            isEnglish ? '🔔 Prepmate BD Study Reminder Activated!' : '🔔 প্রেপমেট বিডি ডেইলি রিমাইন্ডার চালু হয়েছে!',
+            {
+              body: isEnglish
+                ? `Great job! You will receive daily reminders at ${time} to complete your ${user.academicLevel} Board Exam challenge!`
+                : `অভিনন্দন! প্রতিদিন রাত ${time} টায় আপনার ${user.academicLevel} বোর্ড পরীক্ষা প্রস্তুতির কথা মনে করিয়ে দেওয়া হবে!`,
+              icon: '/icon.png',
+              tag: 'prepmate-welcome-reminder',
+            }
+          );
+        } catch (notifErr) {
+          console.debug('Notification API constructor skipped:', notifErr);
+        }
       } else if (res === 'denied') {
         setErrorMessage(
           isEnglish
@@ -97,17 +103,19 @@ export const StudyReminderModal: React.FC<StudyReminderModalProps> = ({
       }
     } catch (err) {
       console.error('Error requesting notification permission:', err);
-      setErrorMessage(
-        isEnglish ? 'Could not request notification permission.' : 'নোটিফিকেশন পারমিশন চাওয়া সম্ভব হয়নি।'
-      );
+      // Fallback enable inside app even if browser notification throws in iframe
+      setEnabled(true);
+      localStorage.setItem('prepmate_reminder_enabled', 'true');
+      onUpdateUser({ reminderEnabled: true, reminderTime: time });
     }
   };
 
   const handleToggleEnable = async () => {
     if (!enabled) {
-      if (permission !== 'granted') {
+      if (permission !== 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
         await requestNotificationPermission();
       } else {
+        playReminderChime();
         setEnabled(true);
         localStorage.setItem('prepmate_reminder_enabled', 'true');
         onUpdateUser({ reminderEnabled: true });
@@ -126,30 +134,26 @@ export const StudyReminderModal: React.FC<StudyReminderModalProps> = ({
   };
 
   const handleSendTestNotification = async () => {
-    if (permission !== 'granted') {
-      await requestNotificationPermission();
-      return;
-    }
+    playReminderChime();
+    setTestSent(true);
+    setTimeout(() => setTestSent(false), 3500);
 
-    try {
-      new Notification(
-        isEnglish
-          ? `🔥 Don't break your ${user.streakDays}-day streak!`
-          : `🔥 আপনার ${user.streakDays} দিনের স্টাডি স্ট্রিক ধরে রাখুন!`,
-        {
-          body: isEnglish
-            ? `Your daily ${user.academicLevel} (${user.group || 'Science'}) Board Exam Quiz Challenge is waiting for you at PrepMate BD!`
-            : `প্রেপমেট বিডিতে আপনার ${user.academicLevel} (${user.group || 'সাইন্স'}) ডেইলি কুইজ চ্যালেঞ্জ প্রস্তুত! আজই এ প্লাস প্রস্তুতি নিশ্চিত করুন। 📚🎯`,
-          tag: 'prepmate-daily-test',
-        }
-      );
-      setTestSent(true);
-      setTimeout(() => setTestSent(false), 3000);
-    } catch (err) {
-      console.error('Test notification failed:', err);
-      setErrorMessage(
-        isEnglish ? 'Failed to send test notification.' : 'টেস্ট নোটিফিকেশন পাঠাতে ব্যর্থ হয়েছে।'
-      );
+    if (permission === 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        new Notification(
+          isEnglish
+            ? `🔥 Don't break your ${user.streakDays}-day streak!`
+            : `🔥 আপনার ${user.streakDays} দিনের স্টাডি স্ট্রিক ধরে রাখুন!`,
+          {
+            body: isEnglish
+              ? `Your daily ${user.academicLevel} (${user.group || 'Science'}) Board Exam Quiz Challenge is waiting for you at PrepMate BD!`
+              : `প্রেপমেট বিডিতে আপনার ${user.academicLevel} (${user.group || 'সাইন্স'}) ডেইলি কুইজ চ্যালেঞ্জ প্রস্তুত! আজই এ প্লাস প্রস্তুতি নিশ্চিত করুন। 📚🎯`,
+            tag: 'prepmate-daily-test',
+          }
+        );
+      } catch (err) {
+        console.debug('Direct notification failed in iframe sandbox:', err);
+      }
     }
   };
 

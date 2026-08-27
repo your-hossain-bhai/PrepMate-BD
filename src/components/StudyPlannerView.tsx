@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile, AcademicLevel, AcademicGroup, StudySlot } from '../types';
 import { useLanguage } from '../LanguageContext';
 import { StudyReminderCard } from './StudyReminderCard';
@@ -18,7 +18,10 @@ import {
   Edit3,
   X,
   Target,
+  Loader2,
+  Save,
 } from 'lucide-react';
+import { fetchStudyPlanFromFirestore, saveStudyPlanToFirestore } from '../firebase';
 
 interface StudyPlannerViewProps {
   user: UserProfile;
@@ -57,25 +60,27 @@ const SUBJECT_COLORS: Record<string, { bg: string; text: string; border: string;
   DEFAULT: { bg: 'bg-slate-500/20', text: 'text-slate-200', border: 'border-slate-400/40', badge: 'bg-slate-400 text-slate-900' },
 };
 
+const DEFAULT_SCHEDULE: StudySlot[] = [
+  { id: 'Sat-morning', day: 'Sat', timeSlot: 'morning', subject: 'Physics', topic: 'ভেক্টর ও গতিবিদ্যা (Vector)', completed: true },
+  { id: 'Sat-evening', day: 'Sat', timeSlot: 'evening', subject: 'Higher Math', topic: 'ম্যাট্রিক্স ও নির্ণায়ক', completed: true },
+  { id: 'Sun-morning', day: 'Sun', timeSlot: 'morning', subject: 'Chemistry', topic: 'পরমাণুর গঠন ও পর্যায় সারণি', completed: false },
+  { id: 'Sun-night', day: 'Sun', timeSlot: 'night', subject: 'ICT', topic: 'এইচটিএমএল ও সংখ্যা পদ্ধতি', completed: false },
+  { id: 'Mon-morning', day: 'Mon', timeSlot: 'morning', subject: 'Biology', topic: 'কোষ ও এর গঠন (Cell Biology)', completed: false },
+  { id: 'Tue-evening', day: 'Tue', timeSlot: 'evening', subject: 'English', topic: 'Grammar & Modifiers practice', completed: false },
+  { id: 'Wed-morning', day: 'Wed', timeSlot: 'morning', subject: 'Physics', topic: 'কাজ, ক্ষমতা ও শক্তি', completed: false },
+];
+
 export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({ user, onUpdateUser }) => {
   const { lang } = useLanguage();
 
   const isHsc = user.academicLevel === 'HSC';
   const group = user.group || 'Science';
 
-  // Sample initial study routine schedule
-  const [schedule, setSchedule] = useState<StudySlot[]>(() => [
-    { id: 'Sat-morning', day: 'Sat', timeSlot: 'morning', subject: 'Physics', topic: 'ভেক্টর ও গতিবিদ্যা (Vector)', completed: true },
-    { id: 'Sat-evening', day: 'Sat', timeSlot: 'evening', subject: 'Higher Math', topic: 'ম্যাট্রিক্স ও নির্ণায়ক', completed: true },
-    { id: 'Sun-morning', day: 'Sun', timeSlot: 'morning', subject: 'Chemistry', topic: 'পরমাণুর গঠন ও পর্যায় সারণি', completed: false },
-    { id: 'Sun-night', day: 'Sun', timeSlot: 'night', subject: 'ICT', topic: 'এইচটিএমএল ও সংখ্যা পদ্ধতি', completed: false },
-    { id: 'Mon-morning', day: 'Mon', timeSlot: 'morning', subject: 'Biology', topic: 'কোষ ও এর গঠন (Cell Biology)', completed: false },
-    { id: 'Tue-evening', day: 'Tue', timeSlot: 'evening', subject: 'English', topic: 'Grammar & Modifiers practice', completed: false },
-    { id: 'Wed-morning', day: 'Wed', timeSlot: 'wednesday', subject: 'Physics', topic: 'কাজ, ক্ষমতা ও শক্তি', completed: false },
-  ]);
-
+  const [schedule, setSchedule] = useState<StudySlot[]>(DEFAULT_SCHEDULE);
   const [selectedSubject, setSelectedSubject] = useState<string | null>('Physics');
   const [draggedSubject, setDraggedSubject] = useState<string | null>(null);
+  const [generatingAi, setGeneratingAi] = useState(false);
+  const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   // Edit/Add Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -94,6 +99,40 @@ export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({ user, onUpda
   const daysList = lang === 'en' ? DAYS_EN : DAYS_BN;
   const timeSlotsList = lang === 'en' ? SLOTS_EN : SLOTS_BN;
 
+  // Load from Firestore
+  useEffect(() => {
+    let isMounted = true;
+    const loadFromDb = async () => {
+      if (!user.uid) return;
+      try {
+        const savedSlots = await fetchStudyPlanFromFirestore(user.uid);
+        if (isMounted && savedSlots && savedSlots.length > 0) {
+          setSchedule(savedSlots);
+        }
+      } catch (err) {
+        console.warn('Study plan load error:', err);
+      }
+    };
+    loadFromDb();
+    return () => {
+      isMounted = false;
+    };
+  }, [user.uid]);
+
+  // Save to Firestore helper
+  const persistSchedule = async (newSchedule: StudySlot[]) => {
+    if (!user.uid) return;
+    setSavingStatus('saving');
+    try {
+      await saveStudyPlanToFirestore(user.uid, newSchedule);
+      setSavingStatus('saved');
+      setTimeout(() => setSavingStatus('idle'), 2500);
+    } catch (e) {
+      console.warn('Failed to save study plan to Firestore:', e);
+      setSavingStatus('idle');
+    }
+  };
+
   // Handle Drag & Drop
   const handleDragStart = (subjectName: string) => {
     setDraggedSubject(subjectName);
@@ -107,14 +146,14 @@ export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({ user, onUpda
     const subjectToAssign = draggedSubject || selectedSubject;
     if (!subjectToAssign) return;
 
+    let nextSchedule: StudySlot[];
     const existingIndex = schedule.findIndex((s) => s.day === day && s.timeSlot === timeSlot);
     if (existingIndex >= 0) {
-      const updated = [...schedule];
-      updated[existingIndex] = {
-        ...updated[existingIndex],
+      nextSchedule = [...schedule];
+      nextSchedule[existingIndex] = {
+        ...nextSchedule[existingIndex],
         subject: subjectToAssign,
       };
-      setSchedule(updated);
     } else {
       const newSlot: StudySlot = {
         id: `${day}-${timeSlot}-${Date.now()}`,
@@ -124,8 +163,10 @@ export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({ user, onUpda
         topic: `${subjectToAssign} Revision Chapter`,
         completed: false,
       };
-      setSchedule([...schedule, newSlot]);
+      nextSchedule = [...schedule, newSlot];
     }
+    setSchedule(nextSchedule);
+    persistSchedule(nextSchedule);
     setDraggedSubject(null);
   };
 
@@ -142,15 +183,15 @@ export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({ user, onUpda
     if (!activeCellSlot) return;
     const { day, timeSlot } = activeCellSlot;
 
+    let nextSchedule: StudySlot[];
     const existingIndex = schedule.findIndex((s) => s.day === day && s.timeSlot === timeSlot);
     if (existingIndex >= 0) {
-      const updated = [...schedule];
-      updated[existingIndex] = {
-        ...updated[existingIndex],
+      nextSchedule = [...schedule];
+      nextSchedule[existingIndex] = {
+        ...nextSchedule[existingIndex],
         subject: modalSubject,
         topic: modalTopic,
       };
-      setSchedule(updated);
     } else {
       const newSlot: StudySlot = {
         id: `${day}-${timeSlot}-${Date.now()}`,
@@ -160,52 +201,82 @@ export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({ user, onUpda
         topic: modalTopic,
         completed: false,
       };
-      setSchedule([...schedule, newSlot]);
+      nextSchedule = [...schedule, newSlot];
     }
+    setSchedule(nextSchedule);
+    persistSchedule(nextSchedule);
     setModalOpen(false);
   };
 
   const handleRemoveSlot = (day: string, timeSlot: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSchedule(schedule.filter((s) => !(s.day === day && s.timeSlot === timeSlot)));
+    const nextSchedule = schedule.filter((s) => !(s.day === day && s.timeSlot === timeSlot));
+    setSchedule(nextSchedule);
+    persistSchedule(nextSchedule);
   };
 
   const handleToggleComplete = (day: string, timeSlot: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSchedule(
-      schedule.map((s) => {
-        if (s.day === day && s.timeSlot === timeSlot) {
-          const nextState = !s.completed;
-          if (nextState) {
-            // Reward 10 XP on completion!
-            onUpdateUser({ points: user.points + 10 });
-          }
-          return { ...s, completed: nextState };
+    const nextSchedule = schedule.map((s) => {
+      if (s.day === day && s.timeSlot === timeSlot) {
+        const nextState = !s.completed;
+        if (nextState) {
+          // Reward 10 XP on completion!
+          onUpdateUser({ points: user.points + 10 });
         }
-        return s;
-      })
-    );
+        return { ...s, completed: nextState };
+      }
+      return s;
+    });
+    setSchedule(nextSchedule);
+    persistSchedule(nextSchedule);
   };
 
-  // Auto-generate AI Routine
-  const handleGenerateAiRoutine = () => {
-    const aiRoutine: StudySlot[] = [
-      { id: 'Sat-m', day: 'Sat', timeSlot: 'morning', subject: 'Physics', topic: '১ম অধ্যায়: ভেক্টর ও গতিবিদ্যা', completed: true },
-      { id: 'Sat-e', day: 'Sat', timeSlot: 'evening', subject: 'Higher Math', topic: '৩য় অধ্যায়: ম্যাট্রিক্স ও নির্ণায়ক', completed: false },
-      { id: 'Sun-m', day: 'Sun', timeSlot: 'morning', subject: 'Chemistry', topic: '২য় অধ্যায়: পরমাণুর গঠন', completed: false },
-      { id: 'Sun-n', day: 'Sun', timeSlot: 'night', subject: 'ICT', topic: '৩য় অধ্যায়: সংখ্যা পদ্ধতি', completed: false },
-      { id: 'Mon-m', day: 'Mon', timeSlot: 'morning', subject: 'Biology', topic: '১ম অধ্যায়: কোষ ও এর গঠন', completed: false },
-      { id: 'Mon-e', day: 'Mon', timeSlot: 'evening', subject: 'Physics', topic: '৪র্থ অধ্যায়: নিউটনীয় বলবিদ্যা', completed: false },
-      { id: 'Tue-m', day: 'Tue', timeSlot: 'morning', subject: 'Higher Math', topic: '৭ম অধ্যায়: ত্রিকোণমিতি', completed: false },
-      { id: 'Tue-n', day: 'Tue', timeSlot: 'night', subject: 'English', topic: 'Completing Sentences & Modifiers', completed: false },
-      { id: 'Wed-m', day: 'Wed', timeSlot: 'morning', subject: 'Chemistry', topic: '৪র্থ অধ্যায়: রাসায়নিক পরিবর্তন', completed: false },
-      { id: 'Wed-e', day: 'Wed', timeSlot: 'evening', subject: 'Bangla', topic: 'ব্যাকরণ ও সমাস অনুশীলন', completed: false },
-      { id: 'Thu-m', day: 'Thu', timeSlot: 'morning', subject: 'Biology', topic: '২য় অধ্যায়: কোষ বিভাজন', completed: false },
-      { id: 'Thu-n', day: 'Thu', timeSlot: 'night', subject: 'ICT', topic: '৪র্থ অধ্যায়: ওয়েব ডিজাইন পরিচিতি', completed: false },
-      { id: 'Fri-m', day: 'Fri', timeSlot: 'morning', subject: 'Physics', topic: 'সাপ্তাহিক মডেল টেস্ট প্র্যাকটিস', completed: false },
-      { id: 'Fri-e', day: 'Fri', timeSlot: 'evening', subject: 'Higher Math', topic: 'সাপ্তাহিক রিভিশন ও কুইজ', completed: false },
-    ];
-    setSchedule(aiRoutine);
+  // Auto-generate AI Routine from backend Gemini API
+  const handleGenerateAiRoutine = async () => {
+    setGeneratingAi(true);
+    try {
+      const res = await fetch('/api/study-planner/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          academicLevel: user.academicLevel,
+          group: user.group,
+          board: user.board,
+          language: lang,
+        }),
+      });
+
+      if (!res.ok) throw new Error('API request failed');
+      const data = await res.json();
+      if (data.slots && Array.isArray(data.slots) && data.slots.length > 0) {
+        setSchedule(data.slots);
+        persistSchedule(data.slots);
+      }
+    } catch (err) {
+      console.warn('AI routine generation fallback:', err);
+      // Robust curriculum fallback
+      const fallbackRoutine: StudySlot[] = [
+        { id: 'Sat-m', day: 'Sat', timeSlot: 'morning', subject: 'Physics', topic: '১ম অধ্যায়: ভেক্টর ও গতিবিদ্যা', completed: true },
+        { id: 'Sat-e', day: 'Sat', timeSlot: 'evening', subject: 'Higher Math', topic: '৩য় অধ্যায়: ম্যাট্রিক্স ও নির্ণায়ক', completed: false },
+        { id: 'Sun-m', day: 'Sun', timeSlot: 'morning', subject: 'Chemistry', topic: '২য় অধ্যায়: পরমাণুর গঠন', completed: false },
+        { id: 'Sun-n', day: 'Sun', timeSlot: 'night', subject: 'ICT', topic: '৩য় অধ্যায়: সংখ্যা পদ্ধতি', completed: false },
+        { id: 'Mon-m', day: 'Mon', timeSlot: 'morning', subject: 'Biology', topic: '১ম অধ্যায়: কোষ ও এর গঠন', completed: false },
+        { id: 'Mon-e', day: 'Mon', timeSlot: 'evening', subject: 'Physics', topic: '৪র্থ অধ্যায়: নিউটনীয় বলবিদ্যা', completed: false },
+        { id: 'Tue-m', day: 'Tue', timeSlot: 'morning', subject: 'Higher Math', topic: '৭ম অধ্যায়: ত্রিকোণমিতি', completed: false },
+        { id: 'Tue-n', day: 'Tue', timeSlot: 'night', subject: 'English', topic: 'Completing Sentences & Modifiers', completed: false },
+        { id: 'Wed-m', day: 'Wed', timeSlot: 'morning', subject: 'Chemistry', topic: '৪র্থ অধ্যায়: রাসায়নিক পরিবর্তন', completed: false },
+        { id: 'Wed-e', day: 'Wed', timeSlot: 'evening', subject: 'Bangla', topic: 'ব্যাকরণ ও সমাস অনুশীলন', completed: false },
+        { id: 'Thu-m', day: 'Thu', timeSlot: 'morning', subject: 'Biology', topic: '২য় অধ্যায়: কোষ বিভাজন', completed: false },
+        { id: 'Thu-n', day: 'Thu', timeSlot: 'night', subject: 'ICT', topic: '৪র্থ অধ্যায়: ওয়েব ডিজাইন পরিচিতি', completed: false },
+        { id: 'Fri-m', day: 'Fri', timeSlot: 'morning', subject: 'Physics', topic: 'সাপ্তাহিক মডেল টেস্ট প্র্যাকটিস', completed: false },
+        { id: 'Fri-e', day: 'Fri', timeSlot: 'evening', subject: 'Higher Math', topic: 'সাপ্তাহিক রিভিশন ও কুইজ', completed: false },
+      ];
+      setSchedule(fallbackRoutine);
+      persistSchedule(fallbackRoutine);
+    } finally {
+      setGeneratingAi(false);
+    }
   };
 
   const totalSlots = schedule.length;
@@ -225,6 +296,11 @@ export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({ user, onUpda
               <h2 className="text-2xl font-black text-white">
                 {lang === 'en' ? 'Smart Board Study Planner' : 'স্মার্ট বোর্ড স্টাডি প্ল্যানার'}
               </h2>
+              {savingStatus === 'saved' && (
+                <span className="text-[10px] bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 px-2.5 py-0.5 rounded-full font-mono font-bold flex items-center gap-1">
+                  <Check className="w-3 h-3" /> {lang === 'en' ? 'Synced to Cloud' : 'ক্লাউডে সেভ হয়েছে'}
+                </span>
+              )}
             </div>
             <p className="text-xs text-emerald-200/90 max-w-2xl">
               {lang === 'en'
@@ -236,10 +312,20 @@ export const StudyPlannerView: React.FC<StudyPlannerViewProps> = ({ user, onUpda
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleGenerateAiRoutine}
-              className="px-4 py-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#002b24] font-extrabold text-xs rounded-2xl shadow-xl shadow-amber-900/30 flex items-center gap-2 transition-all active:scale-95 uppercase tracking-wider"
+              disabled={generatingAi}
+              className="px-4 py-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#002b24] font-extrabold text-xs rounded-2xl shadow-xl shadow-amber-900/30 flex items-center gap-2 transition-all active:scale-95 uppercase tracking-wider disabled:opacity-60"
             >
-              <Sparkles className="w-4 h-4 text-[#002b24]" />
-              {lang === 'en' ? 'Auto-Generate AI Routine' : 'এআই রুটিন তৈরি করুন'}
+              {generatingAi ? (
+                <>
+                  <Loader2 className="w-4 h-4 text-[#002b24] animate-spin" />
+                  {lang === 'en' ? 'Generating AI Routine...' : 'এআই তৈরি করছে...'}
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-[#002b24]" />
+                  {lang === 'en' ? 'Auto-Generate AI Routine' : 'এআই রুটিন তৈরি করুন'}
+                </>
+              )}
             </button>
           </div>
         </div>

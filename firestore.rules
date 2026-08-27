@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Connection test document
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // User profiles: Students can read all (for leaderboard) and edit their own profile
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if request.auth != null ? request.auth.uid == userId : true;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Community discussion forum posts & comments
+    match /communityPosts/{postId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    // Quiz records and performance statistics
+    match /quizResults/{resultId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+    }
+
+    // Study planner schedules
+    match /studyPlans/{planId} {
+      allow read: if true;
+      allow create, update: if true;
+    }
+  }
+}

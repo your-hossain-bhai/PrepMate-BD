@@ -1,0 +1,91 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Student profile holding points, streak, academic level, and subscription state",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "academicLevel": { "type": "string", "enum": ["SSC", "HSC"] },
+        "group": { "type": "string", "enum": ["Science", "Commerce", "Arts"] },
+        "board": { "type": "string" },
+        "points": { "type": "number" },
+        "streakDays": { "type": "number" },
+        "isPremium": { "type": "boolean" },
+        "dailyQuizCount": { "type": "number" },
+        "lastActiveDate": { "type": "string" },
+        "reminderEnabled": { "type": "boolean" },
+        "reminderTime": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "academicLevel"]
+    },
+    "CommunityPost": {
+      "title": "CommunityPost",
+      "description": "Discussion post or question posted by a student in the PrepMate forum",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "author": { "type": "string" },
+        "authorId": { "type": "string" },
+        "level": { "type": "string" },
+        "subject": { "type": "string" },
+        "questionText": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "upvotes": { "type": "number" },
+        "comments": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["author", "subject", "questionText"]
+    },
+    "QuizResult": {
+      "title": "QuizResult",
+      "description": "Completed quiz record with score, topic, and answers",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "chapter": { "type": "string" },
+        "academicLevel": { "type": "string" },
+        "score": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "subject", "score"]
+    },
+    "StudyPlan": {
+      "title": "StudyPlan",
+      "description": "Weekly study routine slots for a student",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "slots": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "slots"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Student profiles and academic stats"
+    },
+    "/communityPosts/{postId}": {
+      "schema": "CommunityPost",
+      "description": "Community question feed and discussion entries"
+    },
+    "/quizResults/{resultId}": {
+      "schema": "QuizResult",
+      "description": "Student quiz performance histories"
+    },
+    "/studyPlans/{planId}": {
+      "schema": "StudyPlan",
+      "description": "Weekly study routines and planner slots"
+    }
+  }
+}

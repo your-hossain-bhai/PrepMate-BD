@@ -11,6 +11,16 @@ import { SubscriptionView } from './components/SubscriptionView';
 import { StudyPlannerView } from './components/StudyPlannerView';
 import { StudyBotView } from './components/StudyBotView';
 import { StudyReminderModal } from './components/StudyReminderModal';
+import { InstallPromptModal } from './components/InstallPromptModal';
+import { AuthModal } from './components/AuthModal';
+import { playReminderChime } from './utils/notificationAudio';
+import {
+  auth,
+  onAuthStateChanged,
+  isFirebaseConfigured,
+  saveQuizResultToFirestore,
+  syncStudentToFirestore,
+} from './firebase';
 import {
   cacheQuizSet,
   getOfflineQuestions,
@@ -34,6 +44,8 @@ import {
   WifiOff,
   Database,
   RefreshCw,
+  User,
+  LogIn,
 } from 'lucide-react';
 
 type AppTab = 'quiz' | 'bot' | 'planner' | 'community' | 'subscription' | 'profile';
@@ -43,62 +55,97 @@ function MainApp() {
   const { lang, setLang, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
 
-  const [user, setUser] = useState<UserProfile>({
-    uid: 'bd_student_101',
-    phone: '+8801812345678',
-    name: 'তানভীর হোসেন',
-    academicLevel: 'HSC',
-    group: 'Science',
-    isPremium: false,
-    dailyQuizCount: 0,
-    points: 120,
-    streakDays: 4,
-    quizHistory: [
-      {
-        id: 'qh_1',
-        subject: 'Physics',
-        chapter: '১ম অধ্যায় - ভৌত রাশি ও পরিমাপ',
-        score: 5,
-        totalQuestions: 5,
-        percentage: 100,
-        timestamp: 'আজ, ১০:১৫ AM',
-        academicLevel: 'HSC',
-      },
-      {
-        id: 'qh_2',
-        subject: 'Higher Math',
-        chapter: '৩য় অধ্যায় - ম্যাট্রিক্স ও নির্ণায়ক',
-        score: 4,
-        totalQuestions: 5,
-        percentage: 80,
-        timestamp: 'গতকাল, ০৮:৪৫ PM',
-        academicLevel: 'HSC',
-      },
-      {
-        id: 'qh_3',
-        subject: 'Chemistry',
-        chapter: '২য় অধ্যায় - পরমাণুর গঠন',
-        score: 3,
-        totalQuestions: 5,
-        percentage: 60,
-        timestamp: '০৯ আগস্ট, ০৪:২০ PM',
-        academicLevel: 'HSC',
-      },
-      {
-        id: 'qh_4',
-        subject: 'Biology',
-        chapter: '১ম অধ্যায় - কোষ ও এর গঠন',
-        score: 4,
-        totalQuestions: 5,
-        percentage: 80,
-        timestamp: '০৭ আগস্ট, ১১:১০ AM',
-        academicLevel: 'HSC',
-      },
-    ],
+  const [user, setUser] = useState<UserProfile>(() => {
+    const saved = localStorage.getItem('prepmate_auth_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // fallback
+      }
+    }
+    return {
+      uid: 'bd_student_101',
+      phone: '+8801812345678',
+      name: 'তানভীর হোসেন',
+      academicLevel: 'HSC',
+      group: 'Science',
+      isPremium: false,
+      dailyQuizCount: 0,
+      points: 120,
+      streakDays: 4,
+      quizHistory: [
+        {
+          id: 'qh_1',
+          subject: 'Physics',
+          chapter: '১ম অধ্যায় - ভৌত রাশি ও পরিমাপ',
+          score: 5,
+          totalQuestions: 5,
+          percentage: 100,
+          timestamp: 'আজ, ১০:১৫ AM',
+          academicLevel: 'HSC',
+        },
+        {
+          id: 'qh_2',
+          subject: 'Higher Math',
+          chapter: '৩য় অধ্যায় - ম্যাট্রিক্স ও নির্ণায়ক',
+          score: 4,
+          totalQuestions: 5,
+          percentage: 80,
+          timestamp: 'গতকাল, ০৮:৪৫ PM',
+          academicLevel: 'HSC',
+        },
+        {
+          id: 'qh_3',
+          subject: 'Chemistry',
+          chapter: '২য় অধ্যায় - পরমাণুর গঠন',
+          score: 3,
+          totalQuestions: 5,
+          percentage: 60,
+          timestamp: '০৯ আগস্ট, ০৪:২০ PM',
+          academicLevel: 'HSC',
+        },
+        {
+          id: 'qh_4',
+          subject: 'Biology',
+          chapter: '১ম অধ্যায় - কোষ ও এর গঠন',
+          score: 4,
+          totalQuestions: 5,
+          percentage: 80,
+          timestamp: '০৭ আগস্ট, ১১:১০ AM',
+          academicLevel: 'HSC',
+        },
+      ],
+    };
   });
+
+  // Sync Firebase Auth state if configured
+  useEffect(() => {
+    if (isFirebaseConfigured()) {
+      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        if (firebaseUser) {
+          setUser((prev) => {
+            const updated: UserProfile = {
+              ...prev,
+              uid: firebaseUser.uid,
+              name: firebaseUser.displayName || prev.name || 'Student',
+              email: firebaseUser.email || prev.email,
+              avatarUrl: firebaseUser.photoURL || prev.avatarUrl,
+              authProvider: firebaseUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
+            };
+            localStorage.setItem('prepmate_auth_user', JSON.stringify(updated));
+            return updated;
+          });
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, []);
 
   const [activeTab, setActiveTab] = useState<AppTab>('quiz');
   const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isOnline, setIsOnline] = useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
@@ -133,7 +180,6 @@ function MainApp() {
       const reminderTime = localStorage.getItem('prepmate_reminder_time') || user.reminderTime || '20:00';
 
       if (!reminderEnabled) return;
-      if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') return;
 
       const now = new Date();
       const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -142,21 +188,29 @@ function MainApp() {
 
       if (currentHHMM === reminderTime && lastTriggeredDate !== todayDateStr) {
         localStorage.setItem('prepmate_last_reminder_triggered', todayDateStr);
-        new Notification(
-          lang === 'en'
-            ? `🔥 Daily Board Exam Challenge Ready (${user.academicLevel})!`
-            : `🔥 আপনার ${user.academicLevel} পরীক্ষা প্রস্তুতি কুইজ চ্যালেঞ্জ প্রস্তুত!`,
-          {
-            body:
+        playReminderChime();
+
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+          try {
+            new Notification(
               lang === 'en'
-                ? `Don't break your ${user.streakDays}-day streak! Return to PrepMate BD now to complete today's practice.`
-                : `আপনার ${user.streakDays} দিনের স্টাডি স্ট্রিক বজায় রাখতে আজই প্রেপমেট বিডিতে কুইজ সম্পন্ন করুন! 📚🎯`,
-            icon: '/icon.png',
-            tag: 'prepmate-scheduled-daily-reminder',
+                ? `🔥 Daily Board Exam Challenge Ready (${user.academicLevel})!`
+                : `🔥 আপনার ${user.academicLevel} পরীক্ষা প্রস্তুতি কুইজ চ্যালেঞ্জ প্রস্তুত!`,
+              {
+                body:
+                  lang === 'en'
+                    ? `Don't break your ${user.streakDays}-day streak! Return to PrepMate BD now to complete today's practice.`
+                    : `আপনার ${user.streakDays} দিনের স্টাডি স্ট্রিক বজায় রাখতে আজই প্রেপমেট বিডিতে কুইজ সম্পন্ন করুন! 📚🎯`,
+                icon: '/icon.png',
+                tag: 'prepmate-scheduled-daily-reminder',
+              }
+            );
+          } catch (e) {
+            console.debug('Notification trigger failed in browser:', e);
           }
-        );
+        }
       }
-    }, 25000);
+    }, 20000);
 
     return () => clearInterval(interval);
   }, [user.reminderEnabled, user.reminderTime, user.streakDays, user.academicLevel, lang]);
@@ -354,12 +408,33 @@ function MainApp() {
     };
 
     // Award 10 points per correct answer + 50 bonus XP if daily challenge solved correctly
-    setUser((prev) => ({
-      ...prev,
-      points: prev.points + correctCount * 10 + bonusXp,
-      lastDailyChallengeDate: isDailyChallengeMode ? todayString : prev.lastDailyChallengeDate,
-      quizHistory: [newRecord, ...(prev.quizHistory || [])],
-    }));
+    setUser((prev) => {
+      const updatedUser = {
+        ...prev,
+        points: prev.points + correctCount * 10 + bonusXp,
+        lastDailyChallengeDate: isDailyChallengeMode ? todayString : prev.lastDailyChallengeDate,
+        quizHistory: [newRecord, ...(prev.quizHistory || [])],
+      };
+
+      // Persist to localStorage
+      localStorage.setItem('prepmate_auth_user', JSON.stringify(updatedUser));
+
+      // Persist to Cloud Firestore database
+      if (prev.uid) {
+        syncStudentToFirestore(prev.uid, updatedUser);
+        saveQuizResultToFirestore(prev.uid, {
+          subject: newRecord.subject,
+          chapter: newRecord.chapter,
+          score: newRecord.score,
+          totalQuestions: newRecord.totalQuestions,
+          percentage: newRecord.percentage,
+          academicLevel: newRecord.academicLevel,
+          group: prev.group,
+        });
+      }
+
+      return updatedUser;
+    });
     setQuizStep('results');
   };
 
@@ -401,8 +476,18 @@ function MainApp() {
             </button>
           </div>
 
-          {/* Controls: Language Switcher, Theme Switcher & Academic Level Toggle */}
+            {/* Controls: Language Switcher, Install, Reminder & Academic Level Toggle */}
           <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap justify-start sm:justify-end w-full sm:w-auto">
+            {/* Install on Mobile App Button */}
+            <button
+              onClick={() => setIsInstallModalOpen(true)}
+              title={lang === 'en' ? 'Install App on Phone' : 'মোবাইলে ইনস্টল করুন'}
+              className="bg-emerald-500 hover:bg-emerald-400 text-[#002b24] px-3 py-1.5 rounded-2xl transition-all flex items-center gap-1.5 text-xs font-extrabold shadow-md shadow-emerald-950/30 active:scale-95"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>{lang === 'en' ? 'Install' : 'ইনস্টল'}</span>
+            </button>
+
             {/* Daily Study Reminder Trigger */}
             <button
               onClick={() => setIsReminderModalOpen(true)}
@@ -414,25 +499,6 @@ function MainApp() {
                 {lang === 'en' ? 'Reminder' : 'রিমাইন্ডার'}
               </span>
               <span className="w-2 h-2 bg-amber-400 rounded-full" />
-            </button>
-
-            {/* Daytime / Nighttime Study Theme Switcher */}
-            <button
-              onClick={toggleTheme}
-              title={theme === 'dark' ? t('dayTheme') : t('nightTheme')}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/15 transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm"
-            >
-              {theme === 'dark' ? (
-                <>
-                  <Sun className="w-4 h-4 text-amber-300" />
-                  <span>{lang === 'en' ? 'Day' : 'দিন'}</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-4 h-4 text-amber-500" />
-                  <span className="font-extrabold">{lang === 'en' ? 'Night' : 'রাত'}</span>
-                </>
-              )}
             </button>
 
             {/* Language Switcher (Bengali vs English) */}
@@ -482,6 +548,35 @@ function MainApp() {
                 HSC
               </button>
             </div>
+            {/* Student Account / Login Chip */}
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              title={lang === 'en' ? 'Student Account / Login' : 'শিক্ষার্থী অ্যাকাউন্ট / লগইন'}
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/15 transition-all flex items-center gap-2 text-xs font-bold shadow-sm active:scale-95 text-emerald-200 hover:text-white"
+            >
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="w-4 h-4 rounded-full object-cover shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <User className="w-3.5 h-3.5 text-amber-400" />
+              )}
+              <span className="max-w-[90px] sm:max-w-[120px] truncate text-white">
+                {user.authProvider && user.authProvider !== 'guest'
+                  ? user.name
+                  : lang === 'en'
+                  ? 'Sign In'
+                  : 'লগইন'}
+              </span>
+              {user.points > 0 && (
+                <span className="bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold hidden sm:inline">
+                  {user.points} XP
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </header>
@@ -723,6 +818,20 @@ function MainApp() {
         user={user}
         isOpen={isReminderModalOpen}
         onClose={() => setIsReminderModalOpen(false)}
+        onUpdateUser={handleUpdateUser}
+      />
+
+      {/* Install on Mobile Modal */}
+      <InstallPromptModal
+        isOpen={isInstallModalOpen}
+        onClose={() => setIsInstallModalOpen(false)}
+      />
+
+      {/* Student Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        user={user}
         onUpdateUser={handleUpdateUser}
       />
 

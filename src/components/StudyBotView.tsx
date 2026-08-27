@@ -147,24 +147,19 @@ export const StudyBotView: React.FC<StudyBotViewProps> = ({ user, onUpdateUser }
   };
 
   const handleClearHistory = () => {
-    if (
-      window.confirm(
-        isEnglish
-          ? 'Are you sure you want to clear chat history?'
-          : 'আপনি কি নিশ্চিত যে নতুন কথোপকথন শুরু করতে চান?'
-      )
-    ) {
-      setMessages([
-        {
-          id: `welcome-reset-${Date.now()}`,
-          sender: 'bot',
-          text: isEnglish
-            ? 'Chat reset! Ready to solve your SSC/HSC study questions. Ask away!'
-            : 'চ্যাট হিস্ট্রি রিসেট করা হয়েছে! আপনার এসএসসি/এইচএসসি পড়ালেখার প্রশ্ন করতে পারেন। 📚',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    }
+    setMessages([
+      {
+        id: `welcome-reset-${Date.now()}`,
+        sender: 'bot',
+        text: isEnglish
+          ? '✨ Chat reset! Ready to solve your SSC/HSC study questions. Ask away or upload a problem photo! 📚'
+          : '✨ নতুন চ্যাট শুরু হয়েছে! আপনার এসএসসি/এইচএসসি পরীক্ষার প্রশ্ন বা বইয়ের পাতার ছবি দিন, আমি বুঝিয়ে দেব। 📚',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+    ]);
+    setInputText('');
+    setSelectedImage(null);
+    setLoading(false);
   };
 
   // Preset Prompts for Quick Study Questions

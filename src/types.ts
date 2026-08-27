@@ -24,7 +24,10 @@ export interface StudySlot {
 export interface UserProfile {
   uid: string;
   phone: string;
+  email?: string;
   name: string;
+  avatarUrl?: string;
+  authProvider?: 'google' | 'email' | 'bdapps' | 'guest';
   academicLevel: AcademicLevel;
   group: AcademicGroup;
   isPremium: boolean;

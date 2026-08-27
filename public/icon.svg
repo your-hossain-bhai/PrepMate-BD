@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#004d40" />
+      <stop offset="100%" stop-color="#002b24" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+  
+  <!-- Outer glowing accent ring -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#10b981" stroke-width="8" opacity="0.3" />
+  
+  <!-- Graduation Cap / Book Icon Graphic in Gold -->
+  <g transform="translate(106, 120)">
+    <!-- Book / Cap base -->
+    <path d="M150 40 L280 110 L150 180 L20 110 Z" fill="url(#goldGrad)" />
+    <path d="M60 140 L60 210 Q150 260 240 210 L240 140 Q150 190 60 140 Z" fill="#10b981" />
+    <!-- Tassel -->
+    <path d="M250 120 L270 200 L260 240 L280 240 L270 200 Z" fill="#fbbf24" />
+    <!-- Sparkles -->
+    <polygon points="40,30 45,45 60,50 45,55 40,70 35,55 20,50 35,45" fill="#34d399" />
+    <polygon points="260,30 264,42 276,46 264,50 260,62 256,50 244,46 256,42" fill="#fbbf24" />
+  </g>
+  
+  <!-- Text Label -->
+  <text x="256" y="420" font-family="system-ui, -apple-system, sans-serif" font-size="44" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">PrepMate BD</text>
+</svg>
