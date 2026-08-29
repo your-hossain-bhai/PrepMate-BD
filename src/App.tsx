@@ -122,7 +122,7 @@ function MainApp() {
 
   // Sync Firebase Auth state if configured
   useEffect(() => {
-    if (isFirebaseConfigured()) {
+    if (isFirebaseConfigured() && auth) {
       // Handle redirect sign-in result (PWA/Mobile)
       getRedirectResult(auth).then((result) => {
         if (result && result.user) {

@@ -53,25 +53,24 @@ export const isFirebaseConfigured = (): boolean => {
 };
 
 // Initialize Firebase App safely
-let app: any = {};
-let auth: any = {};
-let db: any = {};
-const googleProvider = new GoogleAuthProvider();
+function initFirebase() {
+  if (!isFirebaseConfigured()) return { app: null, auth: null, db: null };
+  try {
+    const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    return { app, auth, db };
+  } catch (err) {
+    console.error("Firebase init failed:", err);
+    return { app: null, auth: null, db: null };
+  }
+}
+
+export const { app, auth, db } = initFirebase();
+export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
-
-try {
-  if (isFirebaseConfigured()) {
-    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-  }
-} catch (err) {
-  console.error("Firebase init failed:", err);
-}
-
-export { app, auth, db, googleProvider };
 
 /**
  * Sync Student Profile to Firestore Database

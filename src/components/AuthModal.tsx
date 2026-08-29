@@ -81,7 +81,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setAuthSuccess('');
 
     try {
-      if (firebaseReady) {
+      if (firebaseReady && auth) {
         const result = await signInWithPopup(auth, googleProvider);
         const fbUser = result.user;
 
@@ -159,7 +159,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setAuthSuccess('');
 
     try {
-      if (firebaseReady) {
+      if (firebaseReady && auth) {
         const result = await signInWithEmailAndPassword(auth, email, password);
         const fbUser = result.user;
 
@@ -221,7 +221,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setAuthSuccess('');
 
     try {
-      if (firebaseReady) {
+      if (firebaseReady && auth) {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         const fbUser = result.user;
 
