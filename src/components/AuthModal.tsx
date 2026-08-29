@@ -6,6 +6,7 @@ import {
   googleProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
+  signInWithRedirect,
   createUserWithEmailAndPassword,
   updateProfile,
   isFirebaseConfigured,
@@ -122,8 +123,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     } catch (err: any) {
       console.error('Google Sign-in error:', err);
-      if (err.code === 'auth/popup-closed-by-user') {
-        setAuthError(lang === 'en' ? 'Sign-in popup was closed' : 'লগইন পপআপ উইন্ডো বন্ধ করা হয়েছে');
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        // Fallback to redirect for mobile/PWA users
+        setAuthError(lang === 'en' ? 'Popup blocked. Redirecting...' : 'পপআপ ব্লকড, রিডাইরেক্ট করা হচ্ছে...');
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectErr) {
+          setAuthError('Redirect sign-in failed. Please try again.');
+          setIsLoading(false);
+        }
       } else if (err.code === 'auth/unauthorized-domain') {
         setAuthError(
           lang === 'en'

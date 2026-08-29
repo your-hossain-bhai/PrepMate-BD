@@ -17,6 +17,7 @@ import { playReminderChime } from './utils/notificationAudio';
 import {
   auth,
   onAuthStateChanged,
+  getRedirectResult,
   isFirebaseConfigured,
   saveQuizResultToFirestore,
   syncStudentToFirestore,
@@ -122,6 +123,22 @@ function MainApp() {
   // Sync Firebase Auth state if configured
   useEffect(() => {
     if (isFirebaseConfigured()) {
+      // Handle redirect sign-in result (PWA/Mobile)
+      getRedirectResult(auth).then((result) => {
+        if (result && result.user) {
+          const fbUser = result.user;
+          syncStudentToFirestore(fbUser.uid, {
+            uid: fbUser.uid,
+            name: fbUser.displayName || 'Google Student',
+            email: fbUser.email || undefined,
+            avatarUrl: fbUser.photoURL || undefined,
+            authProvider: 'google',
+          });
+        }
+      }).catch((error) => {
+        console.error('Redirect sign-in error:', error);
+      });
+
       const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
           setUser((prev) => {

@@ -6,6 +6,7 @@ import {
   googleProvider,
   signInWithPopup,
   signInWithEmailAndPassword,
+  signInWithRedirect,
   createUserWithEmailAndPassword,
   updateProfile,
   signOut,
@@ -147,7 +148,23 @@ export const AuthView: React.FC<AuthViewProps> = ({ user, onUpdateUser, onLoginC
       }
     } catch (err: any) {
       console.error('Google Sign-in error:', err);
-      setAuthError(err.message || 'Google Sign-in failed. Please try again.');
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        setAuthError(lang === 'en' ? 'Popup blocked. Redirecting...' : 'পপআপ ব্লকড, রিডাইরেক্ট করা হচ্ছে...');
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectErr) {
+          setAuthError('Redirect sign-in failed. Please try again.');
+          setIsLoading(false);
+        }
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setAuthError(
+          lang === 'en'
+            ? 'Domain unauthorized in Firebase console. Please add this domain to Authorized Domains.'
+            : 'ফায়ারবেস কনসোলে এই ডোমেনটি Authorized Domains এ যুক্ত করুন।'
+        );
+      } else {
+        setAuthError(err.message || 'Google Sign-in failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
