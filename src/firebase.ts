@@ -42,17 +42,36 @@ const firebaseConfig = {
 // Check if valid Firebase configuration is provided
 export const isFirebaseConfigured = (): boolean => {
   const apiKey = firebaseConfig.apiKey;
-  return Boolean(apiKey && apiKey.length > 10 && !apiKey.includes('sample_dummy'));
+  const projectId = firebaseConfig.projectId;
+  return Boolean(
+    apiKey && 
+    apiKey.length > 10 && 
+    !apiKey.includes('sample_dummy') &&
+    projectId &&
+    projectId.length > 0
+  );
 };
 
 // Initialize Firebase App safely
-export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const googleProvider = new GoogleAuthProvider();
+let app: any = {};
+let auth: any = {};
+let db: any = {};
+const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
+
+try {
+  if (isFirebaseConfigured()) {
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+  }
+} catch (err) {
+  console.error("Firebase init failed:", err);
+}
+
+export { app, auth, db, googleProvider };
 
 /**
  * Sync Student Profile to Firestore Database
