@@ -510,10 +510,10 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
                 <MessageSquare className="w-3.5 h-3.5 text-amber-400" /> SMS Subscription:
               </div>
               <p className="text-slate-300 mt-1">
-                Send <code className="text-amber-300 font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">START PREP</code> to <code className="text-emerald-300 font-mono font-bold">21213</code>
+                Send <code className="text-amber-300 font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">startprep</code> to <code className="text-emerald-300 font-mono font-bold">21213</code>
               </p>
               <p className="text-[10px] text-slate-400 mt-1">
-                Unsubscribe: Send <code className="font-mono text-rose-300">STOP PREP</code> to <code className="font-mono">21213</code>
+                Unsubscribe: Send <code className="font-mono text-rose-300">stopprep</code> to <code className="font-mono">21213</code>
               </p>
             </div>
 
@@ -522,7 +522,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
                 <Hash className="w-3.5 h-3.5 text-amber-400" /> USSD Direct Dial:
               </div>
               <p className="text-slate-300 mt-1">
-                Dial <code className="text-amber-300 font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">*21213*999#</code> from your Robi/Airtel SIM.
+                Dial <code className="text-amber-300 font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">78655</code> from your Robi/Airtel SIM.
               </p>
               <p className="text-[10px] text-slate-400 mt-1">
                 Instant telco activation with zero data usage.
