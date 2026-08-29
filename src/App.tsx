@@ -13,6 +13,7 @@ import { StudyBotView } from './components/StudyBotView';
 import { StudyReminderModal } from './components/StudyReminderModal';
 import { InstallPromptModal } from './components/InstallPromptModal';
 import { AuthModal } from './components/AuthModal';
+import { useDailyReminder } from './hooks/useDailyReminder';
 import { playReminderChime } from './utils/notificationAudio';
 import {
   auth,
@@ -142,13 +143,21 @@ function MainApp() {
       const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
           setUser((prev) => {
+            const providerId = firebaseUser.providerData[0]?.providerId;
+            const authProvider = providerId === 'google.com'
+              ? 'google'
+              : providerId === 'phone' || firebaseUser.phoneNumber
+              ? 'phone'
+              : 'email';
+
             const updated: UserProfile = {
               ...prev,
               uid: firebaseUser.uid,
-              name: firebaseUser.displayName || prev.name || 'Student',
+              name: firebaseUser.displayName || prev.name || (firebaseUser.phoneNumber ? `Student (${firebaseUser.phoneNumber.slice(-4)})` : 'Student'),
               email: firebaseUser.email || prev.email,
+              phone: firebaseUser.phoneNumber || prev.phone,
               avatarUrl: firebaseUser.photoURL || prev.avatarUrl,
-              authProvider: firebaseUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
+              authProvider,
             };
             localStorage.setItem('prepmate_auth_user', JSON.stringify(updated));
             return updated;
@@ -168,6 +177,9 @@ function MainApp() {
   );
   const [isOfflineLoaded, setIsOfflineLoaded] = useState<boolean>(false);
   const [resumableSession, setResumableSession] = useState<any | null>(null);
+
+  // Foreground daily study reminder scheduler
+  useDailyReminder(user, lang);
 
   // Monitor Network Online/Offline Status
   useEffect(() => {

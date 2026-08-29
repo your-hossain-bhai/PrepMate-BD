@@ -347,23 +347,22 @@ async function callGeminiWithRetry(options: {
     throw new Error('GEMINI_API_KEY is not configured');
   }
 
-  // Model hierarchy: Primary is gemini-3.7-flash, followed by robust fallbacks
+  // Model hierarchy: Ordered fastest/cheapest-first with strong general-purpose model as last fallback
   const modelsToTry = options.preferredModels || [
-    'gemini-3.7-flash',
-    'gemini-flash-latest',
     'gemini-3.1-flash-lite',
+    'gemini-3.7-flash',
+    'gemini-3.1-pro-preview',
   ];
 
   let lastError: any = null;
 
   for (const model of modelsToTry) {
-    // 1 retry per model before switching to the next fallback model for fastest response
     const maxRetries = options.maxRetriesPerModel ?? 1;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         if (attempt > 0) {
-          // Short jitter delay (300ms - 600ms) before retrying
+          // Short jitter delay (300ms - 600ms) before retrying transient errors
           const delayMs = 300 + Math.floor(Math.random() * 300);
           await new Promise((r) => setTimeout(r, delayMs));
         }
@@ -384,22 +383,26 @@ async function callGeminiWithRetry(options: {
         lastError = err;
         const errMsg = (err.message || '').toLowerCase();
         const errStatus = err.status || '';
-        const isTransientUnavailable =
+        const isTransient =
           errMsg.includes('503') ||
           errMsg.includes('high demand') ||
           errMsg.includes('unavailable') ||
           errMsg.includes('429') ||
           errMsg.includes('resource_exhausted') ||
+          errMsg.includes('rate limit') ||
+          errMsg.includes('quota') ||
+          errMsg.includes('timeout') ||
+          errMsg.includes('overloaded') ||
           errStatus === 'UNAVAILABLE' ||
           errStatus === 'RESOURCE_EXHAUSTED';
 
         // Log gracefully without triggering test-suite false alarms
         if (process.env.NODE_ENV !== 'production') {
-          console.log(`[Gemini Failover] Model '${model}' attempt ${attempt + 1} unavailable (${errStatus || 'busy'}). Trying alternate model.`);
+          console.log(`[Gemini Failover] Model '${model}' attempt ${attempt + 1} error (${errStatus || errMsg}).`);
         }
 
-        // If 503 high demand or 429, don't wait for multiple retries; failover immediately to next model
-        if (isTransientUnavailable && attempt >= 0) {
+        // For non-transient errors (e.g. invalid model, 400, 404), do not waste retries on this model; fail over immediately to the next model
+        if (!isTransient) {
           break;
         }
       }
@@ -610,19 +613,34 @@ CRITICAL MATH FORMATTING RULE:
     const banglishWords = ['ami', 'tumi', 'apni', 'kivabe', 'kemon', 'bujhi', 'bujhinai', 'eita', 'korbo', 'parbo', 'vaiya', 'bhai', 'bolo', 'amar', 'tomar', 'somoy', 'poriksha', 'porikha', 'shathe', 'a+'];
     const isBanglish = banglishWords.some((w) => lowerMsg.includes(w));
 
-    // Off-topic keywords
+    // Academic allowlist that should never be flagged as off-topic
+    const academicAllowlist = [
+      'game theory',
+      'business game',
+    ];
+
+    const isAllowedAcademicTerm = academicAllowlist.some((term) =>
+      new RegExp(`\\b${term}\\b`, 'i').test(lowerMsg)
+    );
+
+    // Off-topic keywords with whole-word boundary matching
+    const offTopicPatterns = [
+      /\bmovie\b/i,
+      /\bcinema\b/i,
+      /\bactor\b/i,
+      /\bactress\b/i,
+      /\bnatok\b/i,
+      /\bserial\b/i,
+      /\bgame\b/i,
+      /\bsong\b/i,
+      /\bgossip\b/i,
+      /\bcricket\s+match\b/i,
+      /\bfootball\s+match\b/i,
+    ];
+
     const isOffTopic =
-      lowerMsg.includes('movie') ||
-      lowerMsg.includes('cinema') ||
-      lowerMsg.includes('actor') ||
-      lowerMsg.includes('actress') ||
-      lowerMsg.includes('natok') ||
-      lowerMsg.includes('serial') ||
-      lowerMsg.includes('game') ||
-      lowerMsg.includes('song') ||
-      lowerMsg.includes('gossip') ||
-      lowerMsg.includes('cricket match') ||
-      lowerMsg.includes('football match');
+      !isAllowedAcademicTerm &&
+      offTopicPatterns.some((pattern) => pattern.test(lowerMsg));
 
     if (!ai || !process.env.GEMINI_API_KEY) {
       if (isOffTopic) {

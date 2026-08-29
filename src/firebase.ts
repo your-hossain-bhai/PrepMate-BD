@@ -11,6 +11,9 @@ import {
   signOut,
   onAuthStateChanged,
   User as FirebaseUser,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  type ConfirmationResult,
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -31,12 +34,12 @@ import firebaseAppletConfig from '../firebase-applet-config.json';
 
 // Client-side Firebase Configuration for PrepMate BD
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseAppletConfig.apiKey,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseAppletConfig.authDomain,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseAppletConfig.projectId,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseAppletConfig.storageBucket,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseAppletConfig.messagingSenderId,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseAppletConfig.appId,
+  apiKey: firebaseAppletConfig.apiKey || import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: firebaseAppletConfig.authDomain || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: firebaseAppletConfig.projectId || import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: firebaseAppletConfig.storageBucket || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: firebaseAppletConfig.messagingSenderId || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: firebaseAppletConfig.appId || import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 // Check if valid Firebase configuration is provided
@@ -58,7 +61,7 @@ function initFirebase() {
   try {
     const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db = getFirestore(app, firebaseAppletConfig.firestoreDatabaseId || "(default)");
     return { app, auth, db };
   } catch (err) {
     console.error("Firebase init failed:", err);
@@ -67,6 +70,7 @@ function initFirebase() {
 }
 
 export const { app, auth, db } = initFirebase();
+export { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult };
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account',
@@ -184,8 +188,8 @@ export const fetchCommunityPostsFromFirestore = async (academicLevel?: string, m
       };
     });
   } catch (e) {
-    console.warn('Community posts fetch note (falling back to cache):', e);
-    return [];
+    console.error('Community posts fetch error:', e);
+    return null;
   }
 };
 
@@ -195,15 +199,20 @@ export const fetchCommunityPostsFromFirestore = async (academicLevel?: string, m
 export const saveCommunityPostToFirestore = async (postData: Record<string, any>) => {
   try {
     if (!isFirebaseConfigured()) return null;
-    const colRef = collection(db, 'communityPosts');
-    const docRef = await addDoc(colRef, {
+    
+    // Use the ID provided by the local state, or generate a new one
+    const postId = postData.id || `post-${Date.now()}`;
+    const docRef = doc(db, 'communityPosts', postId);
+    
+    await setDoc(docRef, {
       ...postData,
+      id: postId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    return docRef.id;
+    return postId;
   } catch (e) {
-    console.warn('Save community post note:', e);
+    console.error('Save community post note:', e);
     return null;
   }
 };

@@ -31,7 +31,8 @@ export const CommunityFeedView: React.FC<CommunityFeedViewProps> = ({ user }) =>
       setLoadingPosts(true);
       try {
         const firestorePosts = await fetchCommunityPostsFromFirestore();
-        if (isMounted && firestorePosts && firestorePosts.length > 0) {
+        if (isMounted && firestorePosts !== null) {
+          // If we successfully fetched from Firestore (even if empty), use it
           setPosts(firestorePosts);
         }
       } catch (err) {

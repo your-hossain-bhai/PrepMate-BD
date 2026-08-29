@@ -27,7 +27,7 @@ export interface UserProfile {
   email?: string;
   name: string;
   avatarUrl?: string;
-  authProvider?: 'google' | 'email' | 'bdapps' | 'guest';
+  authProvider?: 'google' | 'email' | 'phone' | 'bdapps' | 'guest';
   academicLevel: AcademicLevel;
   group: AcademicGroup;
   isPremium: boolean;
