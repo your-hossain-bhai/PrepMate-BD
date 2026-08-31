@@ -826,20 +826,12 @@ function getCurriculumStudyRoutine(level: string, group: string, isEn: boolean) 
   ];
 }
 
-// BDapps TAP API Configuration (Robi / Airtel / BDapps Platform)
-// Documentation: https://dev.bdapps.com/API_Documentation/bdapps_tap_api.html
-const BDAPPS_APP_ID = process.env.BDAPPS_APP_ID || '';
-const BDAPPS_APP_PASSWORD = process.env.BDAPPS_APP_PASSWORD || '';
-const BDAPPS_BASE_URL = process.env.BDAPPS_BASE_URL || 'https://developer.bdapps.com';
+// AppsPro / BDApps Configuration
+const APPSPRO_SECRET_KEY = process.env.APPSPRO_SECRET_KEY || '';
+const APPSPRO_BASE_URL = 'https://api.appspro.dev/api/v1/sdk';
 
 const isLiveBdappsConfigured = (): boolean => {
-  return Boolean(
-    BDAPPS_APP_ID &&
-    BDAPPS_APP_PASSWORD &&
-    !BDAPPS_APP_ID.toLowerCase().includes('your_bdapps') &&
-    !BDAPPS_APP_PASSWORD.toLowerCase().includes('your_bdapps') &&
-    BDAPPS_APP_ID.trim().length > 3
-  );
+  return Boolean(APPSPRO_SECRET_KEY && APPSPRO_SECRET_KEY.length > 10);
 };
 
 // Format phone number to standard bdapps tel URI e.g. "tel:8801812345678"
@@ -879,24 +871,15 @@ app.post('/api/bdapps/otp/request', async (req, res) => {
     // If real credentials are set in environment, call official BDapps TAP API
     if (isLiveBdappsConfigured()) {
       try {
-        const bdappsResponse = await fetch(`${BDAPPS_BASE_URL}/subscription/otp/request`, {
+        const bdappsResponse = await fetch(`${APPSPRO_BASE_URL}/otp/request`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'Authorization': `Bearer ${APPSPRO_SECRET_KEY}`
           },
           body: JSON.stringify({
-            version: '1.0',
-            applicationId: BDAPPS_APP_ID,
-            password: BDAPPS_APP_PASSWORD,
-            subscriberId: subscriberId,
-            applicationHash: 'PREPMATE',
-            applicationMetaData: {
-              client: "WEBAPP",
-              device: "Desktop/Mobile",
-              os: "Browser",
-              appCode: "https://prepmate.bd"
-            }
+            phone: phone,
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -950,24 +933,16 @@ app.post('/api/bdapps/otp/verify', async (req, res) => {
     // If real credentials are set in environment, call official BDapps TAP API
     if (isLiveBdappsConfigured()) {
       try {
-        const bdappsResponse = await fetch(`${BDAPPS_BASE_URL}/subscription/otp/verify`, {
+        const bdappsResponse = await fetch(`${APPSPRO_BASE_URL}/otp/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'Authorization': `Bearer ${APPSPRO_SECRET_KEY}`
           },
           body: JSON.stringify({
-            version: '1.0',
-            applicationId: BDAPPS_APP_ID,
-            password: BDAPPS_APP_PASSWORD,
-            referenceNo,
+            reference_no: referenceNo,
             otp: otp.trim(),
-            applicationMetaData: {
-              client: "WEBAPP",
-              device: "Desktop/Mobile",
-              os: "Browser",
-              appCode: "https://prepmate.bd"
-            }
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -1062,24 +1037,15 @@ app.post('/api/bdapps/subscribe', async (req, res) => {
     // Call live BDapps TAP API if configured
     if (isLiveBdappsConfigured()) {
       try {
-        const bdappsResponse = await fetch(`${BDAPPS_BASE_URL}/subscription/send`, {
+        const bdappsResponse = await fetch(`${APPSPRO_BASE_URL}/subscribe`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'Authorization': `Bearer ${APPSPRO_SECRET_KEY}`
           },
           body: JSON.stringify({
-            version: '1.0',
-            applicationId: BDAPPS_APP_ID,
-            password: BDAPPS_APP_PASSWORD,
-            subscriberId: subscriberId,
-            action: '1', // 1 = Subscribe / Register
-            applicationMetaData: {
-              client: "WEBAPP",
-              device: "Desktop/Mobile",
-              os: "Browser",
-              appCode: "https://prepmate.bd"
-            }
+            phone: phone,
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -1154,24 +1120,15 @@ app.post('/api/bdapps/unsubscribe', async (req, res) => {
     // Call live BDapps TAP API if configured
     if (isLiveBdappsConfigured()) {
       try {
-        const bdappsResponse = await fetch(`${BDAPPS_BASE_URL}/subscription/send`, {
+        const bdappsResponse = await fetch(`${APPSPRO_BASE_URL}/unsubscribe`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'Authorization': `Bearer ${APPSPRO_SECRET_KEY}`
           },
           body: JSON.stringify({
-            version: '1.0',
-            applicationId: BDAPPS_APP_ID,
-            password: BDAPPS_APP_PASSWORD,
-            subscriberId: subscriberId,
-            action: '0', // 0 = Unsubscribe / Unregister
-            applicationMetaData: {
-              client: "WEBAPP",
-              device: "Desktop/Mobile",
-              os: "Browser",
-              appCode: "https://prepmate.bd"
-            }
+            phone: phone,
           }),
           signal: AbortSignal.timeout(3500),
         });
@@ -1233,23 +1190,15 @@ app.get('/api/bdapps/status', async (req, res) => {
     // Call live BDapps status query if credentials configured
     if (isLiveBdappsConfigured()) {
       try {
-        const bdappsResponse = await fetch(`${BDAPPS_BASE_URL}/subscription/getStatus`, {
+        const bdappsResponse = await fetch(`${APPSPRO_BASE_URL}/status`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'Authorization': `Bearer ${APPSPRO_SECRET_KEY}`
           },
           body: JSON.stringify({
-            version: '1.0',
-            applicationId: BDAPPS_APP_ID,
-            password: BDAPPS_APP_PASSWORD,
-            subscriberId: subscriberId,
-            applicationMetaData: {
-              client: "WEBAPP",
-              device: "Desktop/Mobile",
-              os: "Browser",
-              appCode: "https://prepmate.bd"
-            }
+            phone: phone,
           }),
           signal: AbortSignal.timeout(3500),
         });

@@ -608,7 +608,9 @@ function MainApp() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 space-y-5 relative z-10">
+      <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 flex flex-col gap-5 relative z-10">
+        {/* Content Wrapper */}
+        <div className="order-1 sm:order-1 flex flex-col gap-4 w-full">
         {/* Offline Connection Alert Banner */}
         {!isOnline && (
           <div className="p-3.5 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 border border-amber-400/40 rounded-2xl flex items-center justify-between gap-3 text-white text-xs backdrop-blur-md">
@@ -687,8 +689,10 @@ function MainApp() {
             </span>
           </div>
         )}
-        {/* Pure Student App Navigation Bar */}
-        <div className="bg-white/10 backdrop-blur-2xl p-2 rounded-2xl shadow-xl border border-white/20 flex items-center justify-around overflow-x-auto gap-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden app-nav">
+        </div>
+        {/* Pure Student App Navigation Bar - Sticky Bottom on Mobile, Static on Desktop */}
+        <div className="order-3 sm:order-2 sticky sm:static bottom-4 sm:bottom-auto w-full z-50 mt-auto sm:mt-0 p-1 sm:p-0">
+          <div className="max-w-6xl mx-auto bg-[#002b24]/90 sm:bg-white/10 backdrop-blur-2xl p-2 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] sm:shadow-xl border border-white/20 flex items-center justify-around overflow-x-auto gap-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden app-nav">
           <button
             onClick={() => {
               setActiveTab('quiz');
@@ -774,10 +778,11 @@ function MainApp() {
             <Smartphone className="w-5 h-5 sm:w-4 sm:h-4 text-emerald-300" />
             <span>{t('profileTab')}</span>
           </button>
+          </div>
         </div>
 
         {/* Student App Views */}
-        <div className="space-y-4">
+        <div className="order-2 sm:order-3 w-full space-y-4">
           {/* TAB 1: AI Quiz Engine */}
           {activeTab === 'quiz' && (
             <>
