@@ -59,56 +59,39 @@ export const StudyReminderModal: React.FC<StudyReminderModalProps> = ({
 
   if (!isOpen) return null;
 
+  
   const requestNotificationPermission = async () => {
-    setErrorMessage(null);
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      setErrorMessage(
-        isEnglish
-          ? 'Browser Notifications are not supported on this browser/device.'
-          : 'আপনার ব্রাউজারে নোটিফিকেশন সুবিধা সমর্থিত নয়।'
-      );
-      return;
-    }
-
     try {
-      playReminderChime();
-      const res = await Notification.requestPermission();
-      setPermission(res);
-      if (res === 'granted') {
-        setEnabled(true);
-        localStorage.setItem('prepmate_reminder_enabled', 'true');
-        onUpdateUser({ reminderEnabled: true, reminderTime: time });
+      if (!('Notification' in window)) {
+        setErrorMessage(isEnglish ? 'Browser does not support notifications.' : 'ব্রাউজার নোটিফিকেশন সাপোর্ট করে না।');
+        return;
+      }
 
-        try {
-          // Send a celebratory welcome notification immediately
-          new Notification(
-            isEnglish ? '🔔 Prepmate BD Study Reminder Activated!' : '🔔 প্রেপমেট বিডি ডেইলি রিমাইন্ডার চালু হয়েছে!',
-            {
-              body: isEnglish
-                ? `Great job! You will receive daily reminders at ${time} to complete your ${user.academicLevel} Board Exam challenge!`
-                : `অভিনন্দন! প্রতিদিন রাত ${time} টায় আপনার ${user.academicLevel} বোর্ড পরীক্ষা প্রস্তুতির কথা মনে করিয়ে দেওয়া হবে!`,
-              icon: '/icon.png',
-              tag: 'prepmate-welcome-reminder',
-            }
-          );
-        } catch (notifErr) {
-          console.debug('Notification API constructor skipped:', notifErr);
-        }
-      } else if (res === 'denied') {
+      const result = await Notification.requestPermission();
+      setPermission(result);
+
+      if (result === 'granted') {
+        setErrorMessage(null);
+        await subscribeToPushNotifications(); // Subscribe to Server Push when granted
+        new Notification(
+          isEnglish ? 'Notifications Allowed! 🎉' : 'নোটিফিকেশন চালু হয়েছে! 🎉',
+          {
+            body: isEnglish ? 'You will now receive daily study reminders.' : 'এখন থেকে আপনি প্রতিদিন রিমাইন্ডার পাবেন।',
+            icon: '/icon.png',
+          }
+        );
+      } else {
         setErrorMessage(
           isEnglish
-            ? 'Notification permission was blocked in browser settings. Please allow notifications in your browser location bar to receive reminders.'
-            : 'ব্রাউজার সেটিংস থেকে নোটিফিকেশন ব্লক করা হয়েছে। রিমাইন্ডার পেতে ব্রাউজার থেকে নোটিফিকেশন এলাউ করুন।'
+            ? 'Permission denied. Please allow notifications from site settings.'
+            : 'পারমিশন দেওয়া হয়নি। দয়া করে ব্রাউজার সেটিংস থেকে নোটিফিকেশন অ্যালাউ করুন।'
         );
       }
     } catch (err) {
-      console.error('Error requesting notification permission:', err);
-      // Fallback enable inside app even if browser notification throws in iframe
-      setEnabled(true);
-      localStorage.setItem('prepmate_reminder_enabled', 'true');
-      onUpdateUser({ reminderEnabled: true, reminderTime: time });
+      console.error('Failed to request permission', err);
     }
   };
+
 
   const handleToggleEnable = async () => {
     if (!enabled) {
@@ -133,29 +116,19 @@ export const StudyReminderModal: React.FC<StudyReminderModalProps> = ({
     onUpdateUser({ reminderTime: newTime });
   };
 
+  
   const handleSendTestNotification = async () => {
-    playReminderChime();
-    setTestSent(true);
-    setTimeout(() => setTestSent(false), 3500);
-
-    if (permission === 'granted' && typeof window !== 'undefined' && 'Notification' in window) {
-      try {
-        new Notification(
-          isEnglish
-            ? `🔥 Don't break your ${user.streakDays}-day streak!`
-            : `🔥 আপনার ${user.streakDays} দিনের স্টাডি স্ট্রিক ধরে রাখুন!`,
-          {
-            body: isEnglish
-              ? `Your daily ${user.academicLevel} (${user.group || 'Science'}) Board Exam Quiz Challenge is waiting for you at PrepMate BD!`
-              : `প্রেপমেট বিডিতে আপনার ${user.academicLevel} (${user.group || 'সাইন্স'}) ডেইলি কুইজ চ্যালেঞ্জ প্রস্তুত! আজই এ প্লাস প্রস্তুতি নিশ্চিত করুন। 📚🎯`,
-            tag: 'prepmate-daily-test',
-          }
-        );
-      } catch (err) {
-        console.debug('Direct notification failed in iframe sandbox:', err);
-      }
+    // Attempt Server Push (like Facebook/Instagram)
+    try {
+      await fetch('/api/push/test', { method: 'POST' });
+    } catch (e) {
+      console.error(e);
     }
+    
+    setTestSent(true);
+    setTimeout(() => setTestSent(false), 3000);
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">

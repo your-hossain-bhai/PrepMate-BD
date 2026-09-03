@@ -50,7 +50,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
 
   const checkBdappsStatus = async () => {
     try {
-      const res = await fetch(`/api/subscription/status?phone=${encodeURIComponent(phoneNumber)}`);
+      const res = await fetch(`/api/tapplus/check?phone=${encodeURIComponent(phoneNumber)}`);
       if (!res.ok) return;
       const data = await res.json();
       if (data) {
@@ -73,7 +73,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
     setDemoSimulationOtp(null);
 
     try {
-      const res = await fetch('/api/subscription/otp/request', {
+      const res = await fetch('/api/tapplus/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -119,7 +119,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
     setError('');
 
     try {
-      const res = await fetch('/api/subscription/otp/verify', {
+      const res = await fetch('/api/tapplus/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -162,7 +162,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
     setError('');
 
     try {
-      const res = await fetch('/api/subscription/subscribe', {
+      const res = await fetch('/api/tapplus/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -194,7 +194,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
     setError('');
 
     try {
-      const res = await fetch('/api/subscription/unsubscribe', {
+      const res = await fetch('/api/tapplus/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
