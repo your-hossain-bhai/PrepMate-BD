@@ -100,7 +100,7 @@ export const StudyBotView: React.FC<StudyBotViewProps> = ({ user, onUpdateUser }
     setLoading(true);
 
     try {
-      const res = await fetch('/api/study-bot/chat', {
+      const res = await fetch('/api/tutor/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

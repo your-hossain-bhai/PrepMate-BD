@@ -50,7 +50,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
 
   const checkBdappsStatus = async () => {
     try {
-      const res = await fetch(`/api/bdapps/status?phone=${encodeURIComponent(phoneNumber)}`);
+      const res = await fetch(`/api/subscription/status?phone=${encodeURIComponent(phoneNumber)}`);
       if (!res.ok) return;
       const data = await res.json();
       if (data) {
@@ -73,7 +73,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
     setDemoSimulationOtp(null);
 
     try {
-      const res = await fetch('/api/bdapps/otp/request', {
+      const res = await fetch('/api/subscription/otp/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,9 +83,12 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
       });
 
       const data = await res.json();
+      const code = data.statusCode || data.status_code || (data.raw && data.raw.statusCode);
+      const ref = data.referenceNo || data.reference_no || (data.raw && data.raw.referenceNo);
+      const msg = data.statusDetail || data.status_detail || data.message || 'OTP request failed. Check phone format.';
 
-      if (data.statusCode === 'S1000' || data.referenceNo) {
-        setReferenceNo(data.referenceNo);
+      if (code === 'S1000' || ref) {
+        setReferenceNo(ref);
         setOtpStep('verify');
         if (data.simulationOtp) {
           setDemoSimulationOtp(data.simulationOtp);
@@ -96,10 +99,11 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
             : `${phoneNumber} নম্বরে bdapps OTP পাঠানো হয়েছে। নিচে ওটিপি লিখুন।`
         );
       } else {
-        setError(data.statusDetail || data.message || 'OTP request failed. Check phone format.');
+        setError(msg);
       }
     } catch (err: any) {
-      setError(isEnglish ? 'Unable to connect to bdapps TAP API gateway.' : 'bdapps গেটওয়েতে সংযোগ ব্যর্থ হয়েছে।');
+      console.error('OTP Request Error:', err);
+      setError(isEnglish ? `Request failed: ${err.message}` : `গেটওয়ে এরর: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -115,7 +119,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
     setError('');
 
     try {
-      const res = await fetch('/api/bdapps/otp/verify', {
+      const res = await fetch('/api/subscription/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -127,8 +131,10 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
       });
 
       const data = await res.json();
+      const code = data.statusCode || data.status_code || (data.raw && data.raw.statusCode);
+      const msg = data.statusDetail || data.status_detail || data.message || (isEnglish ? 'Incorrect OTP code.' : 'ভুল ওটিপি দেওয়া হয়েছে।');
 
-      if (data.statusCode === 'S1000' || data.subscriptionStatus === 'REGISTERED') {
+      if (code === 'S1000' || data.subscriptionStatus === 'REGISTERED') {
         setMessage(
           isEnglish
             ? '🎉 Subscribed successfully via bdapps TAP API! Premium activated.'
@@ -139,10 +145,11 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
         setOtpCode('');
         checkBdappsStatus();
       } else {
-        setError(data.statusDetail || data.message || (isEnglish ? 'Incorrect OTP code.' : 'ভুল ওটিপি দেওয়া হয়েছে।'));
+        setError(msg);
       }
     } catch (err: any) {
-      setError(isEnglish ? 'Verification failed with bdapps gateway.' : 'ভেরিফিকেশন সম্পন্ন করা যায়নি।');
+      console.error('OTP Verify Error:', err);
+      setError(isEnglish ? `Verification failed: ${err.message}` : `ভেরিফিকেশন এরর: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -155,7 +162,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
     setError('');
 
     try {
-      const res = await fetch('/api/bdapps/subscribe', {
+      const res = await fetch('/api/subscription/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -187,7 +194,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
     setError('');
 
     try {
-      const res = await fetch('/api/bdapps/unsubscribe', {
+      const res = await fetch('/api/subscription/unsubscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

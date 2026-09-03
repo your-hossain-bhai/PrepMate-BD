@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 
 // Helper function to sanitize formulas and strip LaTeX dollar signs and commands
 function cleanMathText(text: string | undefined | null): string {
@@ -575,7 +575,7 @@ Requirements:
 });
 
 // API: Dedicated SSC & HSC Study AI Chatbot
-app.post('/api/study-bot/chat', async (req, res) => {
+app.post('/api/tutor/ask', async (req, res) => {
   try {
     const { message = '', image, history = [], academicLevel = 'HSC', group = 'Science', language = 'bn' } = req.body;
 
@@ -856,7 +856,7 @@ interface OtpSession {
 const otpStore = new Map<string, OtpSession>();
 
 // API: bdapps TAP API - OTP Request Endpoint (/subscription/otp/request)
-app.post('/api/bdapps/otp/request', async (req, res) => {
+app.post('/api/subscription/otp/request', async (req, res) => {
   try {
     const { phone, operator = 'Robi' } = req.body;
     if (!phone) {
@@ -920,7 +920,7 @@ app.post('/api/bdapps/otp/request', async (req, res) => {
 });
 
 // API: bdapps TAP API - OTP Verify Endpoint (/subscription/otp/verify)
-app.post('/api/bdapps/otp/verify', async (req, res) => {
+app.post('/api/subscription/otp/verify', async (req, res) => {
   try {
     const { referenceNo, otp, phone, operator = 'Robi' } = req.body;
     if (!referenceNo || !otp) {
@@ -1020,7 +1020,7 @@ app.post('/api/bdapps/otp/verify', async (req, res) => {
 });
 
 // API: bdapps Direct Subscription Endpoint (/subscription/send - Action 1)
-app.post('/api/bdapps/subscribe', async (req, res) => {
+app.post('/api/subscription/subscribe', async (req, res) => {
   try {
     const { phone, operator = 'Robi' } = req.body;
 
@@ -1107,7 +1107,7 @@ app.post('/api/bdapps/subscribe', async (req, res) => {
 });
 
 // API: bdapps Unsubscribe Endpoint (/subscription/send - Action 0)
-app.post('/api/bdapps/unsubscribe', async (req, res) => {
+app.post('/api/subscription/unsubscribe', async (req, res) => {
   try {
     const { phone } = req.body;
 
@@ -1172,7 +1172,7 @@ app.post('/api/bdapps/unsubscribe', async (req, res) => {
 });
 
 // API: bdapps TAP API - Status Query Endpoint (/subscription/getStatus)
-app.get('/api/bdapps/status', async (req, res) => {
+app.get('/api/subscription/status', async (req, res) => {
   try {
     const phone = req.query.phone as string;
     if (!phone) {
@@ -1265,8 +1265,8 @@ app.get('/api/bdapps/status', async (req, res) => {
   }
 });
 
-// API: bdapps Server Notification Webhook Receiver (/api/bdapps/notify & /api/bdapps/callback)
-app.post(['/api/bdapps/notify', '/api/bdapps/callback'], (req, res) => {
+// API: bdapps Server Notification Webhook Receiver (/api/subscription/notify & /api/subscription/callback)
+app.post(['/api/subscription/notify', '/api/subscription/callback'], (req, res) => {
   try {
     const { subscriberId, status, frequency, timeStamp } = req.body;
     console.log('📬 [bdapps Webhook Received]:', { subscriberId, status, frequency, timeStamp });
