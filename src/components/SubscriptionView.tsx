@@ -238,8 +238,8 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
           </h2>
           <p className="text-xs sm:text-sm text-emerald-200/90 font-medium max-w-lg mx-auto leading-relaxed mt-1">
             {isEnglish
-              ? 'Charge BDT 2.00/day directly to your Robi or Airtel mobile balance. No credit card required.'
-              : 'রবি অথবা এয়ারটেল ব্যালেন্স থেকে প্রতিদিন মাত্র ২.০০ টাকায় (+ভ্যাট/এসডি) কোনো ক্রেডিট কার্ড ছাড়াই আনলিমিটেড কুইজ ও এআই সমাধান।'}
+              ? 'Charge BDT 2.00/day directly to your Robi or Cirkle mobile balance. No credit card required.'
+              : 'রবি অথবা সার্কেল ব্যালেন্স থেকে প্রতিদিন মাত্র ২.০০ টাকায় (+ভ্যাট/এসডি) কোনো ক্রেডিট কার্ড ছাড়াই আনলিমিটেড কুইজ ও এআই সমাধান।'}
           </p>
         </div>
       </div>
@@ -311,7 +311,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {(['Robi', 'Airtel'] as const).map((op) => (
+            {(['Robi', 'Cirkle'] as const).map((op) => (
               <button
                 key={op}
                 type="button"
@@ -319,7 +319,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
                   setOperator(op);
                   if (op === 'Robi' && !phoneNumber.startsWith('+88018')) {
                     setPhoneNumber('+8801812345678');
-                  } else if (op === 'Airtel' && !phoneNumber.startsWith('+88016')) {
+                  } else if (op === 'Cirkle' && !phoneNumber.startsWith('+88016')) {
                     setPhoneNumber('+8801612345678');
                   }
                 }}
@@ -529,7 +529,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
                 <Hash className="w-3.5 h-3.5 text-amber-400" /> USSD Direct Dial:
               </div>
               <p className="text-slate-300 mt-1">
-                Dial <code className="text-amber-300 font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">78655</code> from your Robi/Airtel SIM.
+                Dial <code className="text-amber-300 font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">78655</code> from your Robi/Circle SIM.
               </p>
               <p className="text-[10px] text-slate-400 mt-1">
                 Instant telco activation with zero data usage.
