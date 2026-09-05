@@ -27,7 +27,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
   const { lang, t } = useLanguage();
   const isEnglish = lang === 'en';
 
-  const [operator, setOperator] = useState<'Robi' | 'Airtel'>('Robi');
+  const [operator, setOperator] = useState<'Robi' | 'Cirkle'>('Robi');
   const [phoneNumber, setPhoneNumber] = useState(user?.phone || '+8801812345678');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -529,7 +529,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ user, onUpda
                 <Hash className="w-3.5 h-3.5 text-amber-400" /> USSD Direct Dial:
               </div>
               <p className="text-slate-300 mt-1">
-                Dial <code className="text-amber-300 font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">78655</code> from your Robi/Circle SIM.
+                Dial <code className="text-amber-300 font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded">78655</code> from your Robi/Cirkle SIM.
               </p>
               <p className="text-[10px] text-slate-400 mt-1">
                 Instant telco activation with zero data usage.
